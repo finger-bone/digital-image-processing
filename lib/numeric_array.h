@@ -70,7 +70,7 @@ namespace NumericArray
             if (data.size() != height * width) {
                 throw std::runtime_error("Data size does not match the expected size");
             }
-            std::vector<std::vector<T>> result(height, vector<T>(width));
+            std::vector<std::vector<T>> result(height, std::vector<T>(width));
             this->foreach([&](T value, size_t index) {
                 result[index / width][index % width] = value;
             }, workers);
