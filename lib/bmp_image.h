@@ -15,7 +15,7 @@
 #include <set>
 #include "numeric_array.h"
 
-namespace Image
+namespace BmpImage
 {
     struct BmpFileHeader
     {
@@ -80,7 +80,7 @@ namespace Image
     struct Image
     {
         ImageSize size;
-        NumericArray<T> data;
+        NumericArray::NumericArray<T> data;
     };
 
     struct BmpImage
@@ -113,6 +113,12 @@ namespace Image
             int bbp = this->header.infoHeader.bitsPerPixel;
             this->header.fileHeader.fileSize = header_size + palette_size + image_size * (bbp / 8);
             this->header.fileHeader.pixelDataOffset = header_size + palette_size;
+        }
+
+        void change_to_eight_bit() {
+            this->set_bbp(8);
+            this->regenerate_palette();
+            this->regenerate_header();
         }
     };
 

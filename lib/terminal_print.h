@@ -1,36 +1,42 @@
 #include "bmp_image.h"
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <cstdio>
+#include <algorithm>
 
-void print_image(const Image::BmpImage &image) {
-    // Get terminal size
+void print_image(const BmpImage::BmpImage &image) {
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
-    // Terminal dimensions (columns = width, rows = height)
-    int term_width = w.ws_col;
+
     int term_height = w.ws_row;
-    
-    // Calculate scaling factors
-    double scale_x = static_cast<double>(term_width) / image.image.size.width;
-    double scale_y = static_cast<double>(term_height) / image.image.size.height;
-    double scale = std::min(scale_x, scale_y * 4);
-    
-    // New dimensions
-    int new_width = static_cast<int>(image.image.size.width * scale);
-    int new_height = static_cast<int>(image.image.size.height * scale);
-    
-    // Resize and print using ASCII characters or ANSI colors
-    for (int y = 0; y < new_height; y++) {
-        for (int x = 0; x < new_width; x++) {
-            int orig_x = static_cast<int>(x / scale);
-            int orig_y = static_cast<int>(y / scale);
-            
-            // Get the pixel color
-            auto pixel = image.image.data.data[orig_y * image.image.size.width + orig_x];
-            // Print using ANSI escape codes for colored output
-            printf("\033[48;2;%d;%d;%dm \033[0m", 
-                   pixel.red, pixel.green, pixel.blue);
+    // int term_width = w.ws_col;
+    int term_width = term_height * 3;
+
+    double chunk_width = static_cast<double>(image.image.size.width) / term_width;
+    double chunk_height = static_cast<double>(image.image.size.height) / term_height;
+
+    for (int ty = 0; ty < term_height; ty++) {
+        for (int tx = 0; tx < term_width; tx++) {
+            // 计算块中心像素的坐标
+            int center_x = static_cast<int>((tx + 0.5) * chunk_width);
+            int center_y = static_cast<int>((term_height - 1 - ty + 0.5) * chunk_height);
+
+            // 检查中心点是否在图像范围内
+            if (center_x >= 0 && center_x < image.image.size.width &&
+                center_y >= 0 && center_y < image.image.size.height) {
+
+                // 获取中心点像素颜色
+                auto &pixel = image.image.data.data[center_y * image.image.size.width + center_x];
+                int avg_red = pixel.red;
+                int avg_green = pixel.green;
+                int avg_blue = pixel.blue;
+
+                // 输出对应颜色的ANSI代码
+                printf("\033[48;2;%d;%d;%dm \033[0m", avg_red, avg_green, avg_blue);
+            } else {
+                // 出界时显示空格
+                printf(" ");
+            }
         }
         printf("\n");
     }

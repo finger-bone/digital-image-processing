@@ -8,7 +8,7 @@
 #include <iostream>
 #include <fstream>
 
-namespace Image
+namespace NumericArray
 {
     template <typename T>
     struct NumericArray;
@@ -77,7 +77,7 @@ namespace Image
             return result;
         }
 
-        void foreach (std::function<void(T, size_t)> func, int workers = std::thread::hardware_concurrency())
+        void foreach(std::function<void(T, size_t)> func, int workers = std::thread::hardware_concurrency())
         {
             int data_size = data.size();
             int chunk_size = data_size / workers;
