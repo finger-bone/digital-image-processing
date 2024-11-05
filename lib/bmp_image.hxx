@@ -2,8 +2,8 @@
 // Created by Zend on 2024/11/3.
 //
 
-#ifndef IMAGE_PROCESSING_BMP_IMAGE_H
-#define IMAGE_PROCESSING_BMP_IMAGE_H
+#ifndef IMAGE_PROCESSING_BMP_IMAGE_HXX
+#define IMAGE_PROCESSING_BMP_IMAGE_HXX
 
 #include "numeric_array.hxx"
 #include <fstream>
