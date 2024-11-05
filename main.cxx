@@ -5,12 +5,6 @@
 
 #include <fstream>
 
-/**
- * （1）将24位彩色图像转换为8位灰度图
-（2）对8位灰度图进行反色
-（3）将24位彩色图像按R,G,B三个分量进行分离，产生3幅新的8位灰度图像
- */
-
 void task1() {
     std::cout << "Input the path of the image: " << std::endl;
     std::string path;
