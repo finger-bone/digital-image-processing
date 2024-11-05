@@ -1,4 +1,7 @@
-#include "bmp_image.h"
+#ifndef IMAGE_PROCESSING_TERMINAL_PRINT_HXX
+#define IMAGE_PROCESSING_TERMINAL_PRINT_HXX
+
+#include "bmp_image.hxx"
 #include <algorithm>
 #include <cstdio>
 #include <sys/ioctl.h>
@@ -44,3 +47,5 @@ void print_image(const BmpImage::BmpImage &image) {
     printf("\n");
   }
 }
+
+#endif

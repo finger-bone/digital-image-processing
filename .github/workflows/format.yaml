@@ -19,7 +19,7 @@ jobs:
       - name: Run clang-format
         run: |
           # Find and format all C++ files
-          find . -regex '.*\.\(h\|hpp\|c\|cpp\|cxx\)' -exec clang-format -i {} +
+          find . -regex '.*\.\(h\|hxx\|c\|cpp\|cxx\)' -exec clang-format -i {} +
 
       - name: Check for uncommitted changes
         id: changes

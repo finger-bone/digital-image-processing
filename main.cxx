@@ -1,7 +1,7 @@
-#include "lib/bar_plot.h"
-#include "lib/bmp_image.h"
-#include "lib/numeric_array.h"
-#include "lib/terminal_print.h"
+#include "lib/bar_plot.hxx"
+#include "lib/bmp_image.hxx"
+#include "lib/numeric_array.hxx"
+#include "lib/terminal_print.hxx"
 
 #include <fstream>
 

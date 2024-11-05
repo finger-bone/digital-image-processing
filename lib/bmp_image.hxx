@@ -5,7 +5,7 @@
 #ifndef IMAGE_PROCESSING_BMP_IMAGE_H
 #define IMAGE_PROCESSING_BMP_IMAGE_H
 
-#include "numeric_array.h"
+#include "numeric_array.hxx"
 #include <fstream>
 #include <functional>
 #include <future>

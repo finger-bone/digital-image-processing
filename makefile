@@ -1,8 +1,5 @@
 all:
-	clang++ -std=c++23 -o main main.cxx
+	clang++ -std=c++23 -O2 -o main.out main.cxx
 
 clean:
-	rm -rf main main.dSYM
-
-format:
-	find . -regex '.*\.\(h\|hpp\|c\|cpp\|cxx\)' -exec clang-format -i {} +
+	rm -rf main.out main.dSYM

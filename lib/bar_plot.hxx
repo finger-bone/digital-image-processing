@@ -1,8 +1,8 @@
-#ifndef IMAGE_PROCESSING_BAR_PLOT_H
-#define IMAGE_PROCESSING_BAR_PLOT_H
+#ifndef IMAGE_PROCESSING_BAR_PLOT_HXX
+#define IMAGE_PROCESSING_BAR_PLOT_HXX
 
-#include "bmp_image.h"
-#include "numeric_array.h"
+#include "bmp_image.hxx"
+#include "numeric_array.hxx"
 
 #include <vector>
 
