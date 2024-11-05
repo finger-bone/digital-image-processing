@@ -1,0 +1,17 @@
+name: Clang Format Checker
+on: [push]
+
+jobs:
+  clang-format-checking:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: RafikFarhad/clang-format-github-action@v3
+        with:
+          sources: "./**/*.h,./**/*.c,./**/*.cxx"
+      - name: Commit changes
+        if: ${{ steps.clang-format.outputs.changed == 'true' }}
+        run: |
+          git add .
+          git commit -m "chore: apply clang-format changes"
+          git push
