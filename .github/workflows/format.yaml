@@ -1,16 +1,38 @@
 name: Clang Format
-on: [push]
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   clang-format-checking:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: RafikFarhad/clang-format-github-action@v4
-        with:
-          sources: "./**/*.h,./**/*.c,./**/*.cxx"
-      - name: Commit changes
-        if: ${{ steps.clang-format.outputs.changed == 'true' }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format
+
+      - name: Run clang-format
+        run: |
+          # Find and format all C++ files
+          find . -regex '.*\.\(h\|hpp\|c\|cpp\|cxx\)' -exec clang-format -i {} +
+
+      - name: Check for uncommitted changes
+        id: changes
+        run: |
+          # Check if any files have been changed by clang-format
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::set-output name=needs_commit::true"
+          else
+            echo "::set-output name=needs_commit::false"
+          fi
+
+      - name: Commit and push changes
+        if: ${{ steps.changes.outputs.needs_commit == 'true' }}
         run: |
           git add .
           git commit -m "chore: apply clang-format changes"
