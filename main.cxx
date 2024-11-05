@@ -92,7 +92,13 @@ void task1() {
 }
 
 int main() {
-  task1();
+  // task1();
+  std::ifstream in_file("input/lena.bmp", std::ios::binary);
+  auto raw_img = BmpImage::read_bmp(in_file);
+  auto p = BarPlot::generate_gray_scale_histogram(raw_img, 256, 1024);
+  print_image(p);
+  std::ofstream f("output/bar_plot.bmp");
+  BmpImage::write_bmp(f, p);
   // auto img = BarPlot::generate_blank_canvas(10, 10);
   // std::vector<int> values = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   // BarPlot::bar_plot(img, values, 10);

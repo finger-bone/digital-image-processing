@@ -214,7 +214,7 @@ std::vector<BmpPixel> read_24_bit_image(std::ifstream &file,
       file.read(reinterpret_cast<char *>(&pixel.red), sizeof(pixel.red));
       pixel.alpha = 255; // BMP 24-bit images don’t have an alpha channel, so
                          // set it to opaque
-      image[(height - 1 - y) * width + x] =
+      image[y * width + x] =
           pixel; // BMP stores pixels from bottom to top
     }
     file.ignore(padding); // Skip padding bytes at the end of each row

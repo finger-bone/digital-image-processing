@@ -65,6 +65,17 @@ void bar_plot(BmpImage::BmpImage &image, std::vector<int> values, int chunks,
     }
   });
 }
+
+BmpImage::BmpImage generate_gray_scale_histogram(BmpImage::BmpImage &image, int width, int height, int chunks=256) {
+  BmpImage::BmpImage plot = generate_blank_canvas(width, height);
+  std::vector<int> values(256);
+  image.image.data.foreach([&](BmpImage::BmpPixel p, size_t idx) {
+    int gray_value = (p.red + p.green + p.blue) / 3;
+    values[gray_value]++;
+  });
+  bar_plot(plot, values, chunks);
+  return plot;
+}
 } // namespace BarPlot
 
 #endif
