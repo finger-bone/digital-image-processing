@@ -15,10 +15,10 @@ void task1() {
   print_image(raw_img);
   // copy the img
   auto gray_img = raw_img;
-  gray_img.image.data.map_inplace([](BmpImage::BmpPixel pixel) {
+  gray_img.image.data.foreach([](BmpImage::BmpPixel& pixel) {
     auto gray = static_cast<uint8_t>(0.299 * pixel.red + 0.587 * pixel.green +
                                      0.114 * pixel.blue);
-    return BmpImage::BmpPixel{
+    pixel = BmpImage::BmpPixel{
         .red = gray,
         .green = gray,
         .blue = gray,
@@ -32,8 +32,8 @@ void task1() {
   BmpImage::write_bmp(gray_img_file, gray_img);
   // invert the image
   auto inverted_grey_img = gray_img;
-  inverted_grey_img.image.data.map_inplace([](BmpImage::BmpPixel pixel) {
-    return BmpImage::BmpPixel{
+  inverted_grey_img.image.data.foreach([](BmpImage::BmpPixel& pixel) {
+    pixel = BmpImage::BmpPixel{
         .red = static_cast<uint8_t>(255 - pixel.red),
         .green = static_cast<uint8_t>(255 - pixel.green),
         .blue = static_cast<uint8_t>(255 - pixel.blue),
@@ -48,8 +48,8 @@ void task1() {
 
   // split the RGB channels
   auto r_img = raw_img;
-  r_img.image.data.map_inplace([](BmpImage::BmpPixel pixel) {
-    return BmpImage::BmpPixel{
+  r_img.image.data.foreach([](BmpImage::BmpPixel& pixel) {
+    pixel = BmpImage::BmpPixel{
         .red = pixel.red,
         .green = pixel.red,
         .blue = pixel.red,
@@ -62,8 +62,8 @@ void task1() {
   std::ofstream r_img_file("output/r_img.bmp", std::ios::binary);
   BmpImage::write_bmp(r_img_file, r_img);
   auto g_img = raw_img;
-  g_img.image.data.map_inplace([](BmpImage::BmpPixel pixel) {
-    return BmpImage::BmpPixel{
+  g_img.image.data.foreach([](BmpImage::BmpPixel& pixel) {
+    pixel = BmpImage::BmpPixel{
         .red = pixel.green,
         .green = pixel.green,
         .blue = pixel.green,
@@ -76,8 +76,8 @@ void task1() {
   std::ofstream g_img_file("output/g_img.bmp", std::ios::binary);
   BmpImage::write_bmp(g_img_file, g_img);
   auto b_img = raw_img;
-  b_img.image.data.map_inplace([](BmpImage::BmpPixel pixel) {
-    return BmpImage::BmpPixel{
+  b_img.image.data.foreach([](BmpImage::BmpPixel& pixel) {
+    pixel = BmpImage::BmpPixel{
         .red = pixel.blue,
         .green = pixel.blue,
         .blue = pixel.blue,
@@ -91,14 +91,38 @@ void task1() {
   BmpImage::write_bmp(b_img_file, b_img);
 }
 
-int main() {
-  // task1();
-  std::ifstream in_file("input/lena.bmp", std::ios::binary);
+
+void task2() {
+  std::cout << "Input the path of the image: " << std::endl;
+  std::string path;
+  std::cin >> path;
+  std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
-  auto p = BarPlot::generate_gray_scale_histogram(raw_img, 256, 1024);
-  print_image(p);
-  std::ofstream f("output/bar_plot.bmp");
-  BmpImage::write_bmp(f, p);
+  std::cout << "Input Image:" << std::endl;
+  print_image(raw_img);
+  auto hist = BarPlot::generate_gray_scale_histogram(raw_img);
+  print_image(hist);
+  std::ofstream hist_file("output/hist_before.bmp", std::ios::binary);
+  BmpImage::write_bmp(hist_file, hist);
+  auto balanced_img = BmpImage::gray_balanced_image(raw_img);
+  std::cout << "Balanced Image:" << std::endl;
+  print_image(balanced_img);
+  std::ofstream balanced_img_file("output/balanced_img.bmp", std::ios::binary);
+  BmpImage::write_bmp(balanced_img_file, balanced_img);
+  auto balanced_hist = BarPlot::generate_gray_scale_histogram(balanced_img);
+  print_image(balanced_hist);
+  std::ofstream balanced_hist_file("output/hist_after.bmp", std::ios::binary);
+  BmpImage::write_bmp(balanced_hist_file, balanced_hist);
+}
+
+int main() {
+  task2();
+  // std::ifstream in_file("input/lena.bmp", std::ios::binary);
+  // auto raw_img = BmpImage::read_bmp(in_file);
+  // auto p = BarPlot::generate_gray_scale_histogram(raw_img, 256, 1024);
+  // print_image(p);
+  // std::ofstream f("output/bar_plot.bmp");
+  // BmpImage::write_bmp(f, p);
   // auto img = BarPlot::generate_blank_canvas(10, 10);
   // std::vector<int> values = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   // BarPlot::bar_plot(img, values, 10);
@@ -108,7 +132,7 @@ int main() {
   // BmpImage::write_bmp(file, img);
   // auto img = Image::load_bmp("input/rgb3.bmp");
 
-  // img.data.map_inplace([](Image::BmpRgbPixel pixel) {
+  // img.data.foreach([](Image::BmpRgbPixel pixel) {
   //     return Image::BmpRgbPixel{
   //         .red = pixel.red,
   //         .green = pixel.green,

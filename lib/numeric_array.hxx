@@ -76,7 +76,7 @@ template <typename T> struct NumericArray {
     return result;
   }
 
-  void foreach (std::function<void(T, size_t)> func,
+  void foreach (std::function<void(T&, size_t)> func,
                 int workers = std::thread::hardware_concurrency()) {
     int data_size = data.size();
     int chunk_size = data_size / workers;
@@ -97,7 +97,7 @@ template <typename T> struct NumericArray {
   }
 
   template <typename U>
-  NumericArray<U> map(std::function<U(T, size_t)> func,
+  NumericArray<U> map(std::function<U(T&, size_t)> func,
                       int workers = std::thread::hardware_concurrency()) {
     int data_size = data.size();
     if (data_size == 0)
@@ -129,33 +129,7 @@ template <typename T> struct NumericArray {
     return NumericArray<U>{result};
   }
 
-  void map_inplace(std::function<T(T, size_t)> func,
-                   int workers = std::thread::hardware_concurrency()) {
-    int data_size = data.size();
-    if (data_size == 0)
-      return;
-
-    int chunk_size = data_size / workers;
-    std::vector<std::future<void>> futures;
-
-    for (int i = 0; i < workers; ++i) {
-      int start_index = i * chunk_size;
-      int end_index = (i == workers - 1) ? data_size : start_index + chunk_size;
-
-      futures.emplace_back(std::async(
-          std::launch::async, [this, func, start_index, end_index]() {
-            for (int j = start_index; j < end_index; ++j) {
-              data[j] = func(data[j], j);
-            }
-          }));
-    }
-
-    for (auto &future : futures) {
-      future.get();
-    }
-  }
-
-  void foreach (std::function<void(T)> func,
+  void foreach (std::function<void(T&)> func,
                 int workers = std::thread::hardware_concurrency()) {
     int data_size = data.size();
     int chunk_size = data_size / workers;
@@ -206,32 +180,6 @@ template <typename T> struct NumericArray {
     }
 
     return NumericArray<U>{result};
-  }
-
-  void map_inplace(std::function<T(T)> func,
-                   int workers = std::thread::hardware_concurrency()) {
-    int data_size = data.size();
-    if (data_size == 0)
-      return;
-
-    int chunk_size = data_size / workers;
-    std::vector<std::future<void>> futures;
-
-    for (int i = 0; i < workers; ++i) {
-      int start_index = i * chunk_size;
-      int end_index = (i == workers - 1) ? data_size : start_index + chunk_size;
-
-      futures.emplace_back(std::async(
-          std::launch::async, [this, func, start_index, end_index]() {
-            for (int j = start_index; j < end_index; ++j) {
-              data[j] = func(data[j]);
-            }
-          }));
-    }
-
-    for (auto &future : futures) {
-      future.get();
-    }
   }
 
   NumericArray<T> operator+(NumericArray<T> other) {

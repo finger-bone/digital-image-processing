@@ -59,6 +59,10 @@ struct BmpPixel {
   uint8_t green;
   uint8_t blue;
   uint8_t alpha;
+
+  uint8_t gray() {
+    return 0.299 * red + 0.587 * green + 0.114 * blue;
+  }
 };
 
 struct ColorPalette {
@@ -358,6 +362,36 @@ void write_bmp(std::ofstream &file, BmpImage &bmpImage) {
     write_24_bit_image(file, bmpImage);
   }
 }
+
+BmpImage gray_balanced_image(BmpImage& bmpImage) {
+  // copy the image
+  BmpImage gray_balanced_image = bmpImage;
+  gray_balanced_image.change_to_eight_bit();
+  std::vector<int> counter(256, 0);
+  gray_balanced_image.image.data.foreach([&](BmpPixel& pixel) {
+    counter[pixel.gray()]++;
+  });
+  int total_pixels = gray_balanced_image.image.size.width * gray_balanced_image.image.size.height;
+  std::vector<double> prob(256, 0);
+  for (int i = 0; i < 256; i++) {
+    prob[i] = static_cast<double>(counter[i]) / total_pixels;
+  }
+  std::vector<double> cdf(256, 0);
+  cdf[0] = prob[0];
+  for (int i = 1; i < 256; i++) {
+    cdf[i] = cdf[i - 1] + prob[i];
+  }
+  gray_balanced_image.image.data.foreach([&](BmpPixel& pixel) {
+    auto value = static_cast<uint8_t>(cdf[pixel.gray()] * 255);
+    pixel.red = value;
+    pixel.green = value;
+    pixel.blue = value;
+  });
+  gray_balanced_image.regenerate_palette();
+  gray_balanced_image.regenerate_header();
+  return gray_balanced_image;
+}
+
 } // namespace BmpImage
 
 #endif // IMAGE_PROCESSING_BMP_IMAGE_H

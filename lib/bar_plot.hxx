@@ -49,25 +49,26 @@ void bar_plot(BmpImage::BmpImage &image, std::vector<int> values, int chunks,
     bar_heights[i] = height * sum / chunk_size / max_value;
   }
 
-  image.image.data.map_inplace([&](BmpImage::BmpPixel p, size_t idx) {
+  image.image.data.foreach([&](BmpImage::BmpPixel& p, size_t idx) {
     int x = idx % width;
     int y = idx / width;
     // find the correct bar of x
     int bar_idx = x / bar_width;
     int bar_height = bar_heights[bar_idx];
     if (bar_idx < 0 || bar_idx >= chunks) {
-      return p;
+      return;
     }
     if (y <= bar_height) {
-      return color;
+      p = color;
+      return;
     } else {
-      return p;
+      return;
     }
   });
 }
 
 BmpImage::BmpImage generate_gray_scale_histogram(BmpImage::BmpImage &image,
-                                                 int width, int height,
+                                                 int width = 256, int height = 256,
                                                  int chunks = 256) {
   BmpImage::BmpImage plot = generate_blank_canvas(width, height);
   std::vector<int> values(256);
