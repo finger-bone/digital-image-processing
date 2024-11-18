@@ -15,7 +15,7 @@ void task1() {
   print_image(raw_img);
   // copy the img
   auto gray_img = raw_img;
-  gray_img.image.data.foreach([](BmpImage::BmpPixel& pixel) {
+  gray_img.image.data.foreach ([](BmpImage::BmpPixel &pixel) {
     auto gray = static_cast<uint8_t>(0.299 * pixel.red + 0.587 * pixel.green +
                                      0.114 * pixel.blue);
     pixel = BmpImage::BmpPixel{
@@ -32,7 +32,7 @@ void task1() {
   BmpImage::write_bmp(gray_img_file, gray_img);
   // invert the image
   auto inverted_grey_img = gray_img;
-  inverted_grey_img.image.data.foreach([](BmpImage::BmpPixel& pixel) {
+  inverted_grey_img.image.data.foreach ([](BmpImage::BmpPixel &pixel) {
     pixel = BmpImage::BmpPixel{
         .red = static_cast<uint8_t>(255 - pixel.red),
         .green = static_cast<uint8_t>(255 - pixel.green),
@@ -48,7 +48,7 @@ void task1() {
 
   // split the RGB channels
   auto r_img = raw_img;
-  r_img.image.data.foreach([](BmpImage::BmpPixel& pixel) {
+  r_img.image.data.foreach ([](BmpImage::BmpPixel &pixel) {
     pixel = BmpImage::BmpPixel{
         .red = pixel.red,
         .green = pixel.red,
@@ -62,7 +62,7 @@ void task1() {
   std::ofstream r_img_file("output/r_img.bmp", std::ios::binary);
   BmpImage::write_bmp(r_img_file, r_img);
   auto g_img = raw_img;
-  g_img.image.data.foreach([](BmpImage::BmpPixel& pixel) {
+  g_img.image.data.foreach ([](BmpImage::BmpPixel &pixel) {
     pixel = BmpImage::BmpPixel{
         .red = pixel.green,
         .green = pixel.green,
@@ -76,7 +76,7 @@ void task1() {
   std::ofstream g_img_file("output/g_img.bmp", std::ios::binary);
   BmpImage::write_bmp(g_img_file, g_img);
   auto b_img = raw_img;
-  b_img.image.data.foreach([](BmpImage::BmpPixel& pixel) {
+  b_img.image.data.foreach ([](BmpImage::BmpPixel &pixel) {
     pixel = BmpImage::BmpPixel{
         .red = pixel.blue,
         .green = pixel.blue,
@@ -90,7 +90,6 @@ void task1() {
   std::ofstream b_img_file("output/b_img.bmp", std::ios::binary);
   BmpImage::write_bmp(b_img_file, b_img);
 }
-
 
 void task2() {
   std::cout << "Input the path of the image: " << std::endl;

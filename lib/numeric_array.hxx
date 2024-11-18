@@ -76,7 +76,7 @@ template <typename T> struct NumericArray {
     return result;
   }
 
-  void foreach (std::function<void(T&, size_t)> func,
+  void foreach (std::function<void(T &, size_t)> func,
                 int workers = std::thread::hardware_concurrency()) {
     int data_size = data.size();
     int chunk_size = data_size / workers;
@@ -97,7 +97,7 @@ template <typename T> struct NumericArray {
   }
 
   template <typename U>
-  NumericArray<U> map(std::function<U(T&, size_t)> func,
+  NumericArray<U> map(std::function<U(T &, size_t)> func,
                       int workers = std::thread::hardware_concurrency()) {
     int data_size = data.size();
     if (data_size == 0)
@@ -129,7 +129,7 @@ template <typename T> struct NumericArray {
     return NumericArray<U>{result};
   }
 
-  void foreach (std::function<void(T&)> func,
+  void foreach (std::function<void(T &)> func,
                 int workers = std::thread::hardware_concurrency()) {
     int data_size = data.size();
     int chunk_size = data_size / workers;
