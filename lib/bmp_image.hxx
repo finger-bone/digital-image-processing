@@ -6,6 +6,7 @@
 #define IMAGE_PROCESSING_BMP_IMAGE_HXX
 
 #include "numeric_array.hxx"
+#include <format>
 #include <fstream>
 #include <functional>
 #include <future>
@@ -14,7 +15,6 @@
 #include <set>
 #include <thread>
 #include <vector>
-#include <format>
 
 namespace BmpImage {
 struct BmpFileHeader {
@@ -102,11 +102,8 @@ struct BmpImage {
     }
     if (unique_colors.size() > 256) {
       throw std::runtime_error(
-        std::format(
-          "Should be fewer than 256 colors, but got {} colors",
-          unique_colors.size()
-        )
-      );
+          std::format("Should be fewer than 256 colors, but got {} colors",
+                      unique_colors.size()));
     }
   }
 

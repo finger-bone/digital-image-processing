@@ -1,8 +1,8 @@
-#include "lib/plot.hxx"
 #include "lib/bmp_image.hxx"
-#include "lib/numeric_array.hxx"
-#include "lib/terminal_print.hxx"
 #include "lib/convolution.hxx"
+#include "lib/numeric_array.hxx"
+#include "lib/plot.hxx"
+#include "lib/terminal_print.hxx"
 
 #include <fstream>
 
@@ -124,26 +124,20 @@ void task3() {
   print_image(raw_img);
   auto avg_filtered_image = raw_img;
   auto value = 1.0 / 25;
-  Convolution::apply_kernel(
-    avg_filtered_image,
-    {
-      {value, value, value, value, value},
-      {value, value, value, value, value},
-      {value, value, value, value, value},
-      {value, value, value, value, value},
-      {value, value, value, value, value},
-    }
-  );
+  Convolution::apply_kernel(avg_filtered_image,
+                            {
+                                {value, value, value, value, value},
+                                {value, value, value, value, value},
+                                {value, value, value, value, value},
+                                {value, value, value, value, value},
+                                {value, value, value, value, value},
+                            });
   std::cout << "average filtered" << std::endl;
   print_image(avg_filtered_image);
   std::ofstream avg_filtered_file("output/avg_filtered.bmp", std::ios::binary);
   BmpImage::write_bmp(avg_filtered_file, avg_filtered_image);
   auto mid_filtered_image = raw_img;
-  Convolution::apply_mid_value_kernel(
-    mid_filtered_image,
-    5,
-    (5 * 5) / 2
-  );
+  Convolution::apply_mid_value_kernel(mid_filtered_image, 5, (5 * 5) / 2);
   print_image(mid_filtered_image);
   std::ofstream mid_filtered_file("output/mid_filtered.bmp", std::ios::binary);
   BmpImage::write_bmp(mid_filtered_file, mid_filtered_image);
