@@ -6,7 +6,7 @@
 
 #include <vector>
 
-namespace BarPlot {
+namespace Plot {
 BmpImage::BmpImage generate_blank_canvas(int width, int height,
                                          BmpImage::BmpPixel color = {
                                              255, 255, 255, 255}) {
@@ -80,6 +80,6 @@ BmpImage::BmpImage generate_gray_scale_histogram(BmpImage::BmpImage &image,
   bar_plot(plot, values, chunks);
   return plot;
 }
-} // namespace BarPlot
+} // namespace Plot
 
 #endif

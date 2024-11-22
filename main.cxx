@@ -1,7 +1,8 @@
-#include "lib/bar_plot.hxx"
+#include "lib/plot.hxx"
 #include "lib/bmp_image.hxx"
 #include "lib/numeric_array.hxx"
 #include "lib/terminal_print.hxx"
+#include "lib/convolution.hxx"
 
 #include <fstream>
 
@@ -16,8 +17,7 @@ void task1() {
   // copy the img
   auto gray_img = raw_img;
   gray_img.image.data.foreach ([](BmpImage::BmpPixel &pixel) {
-    auto gray = static_cast<uint8_t>(0.299 * pixel.red + 0.587 * pixel.green +
-                                     0.114 * pixel.blue);
+    auto gray = static_cast<uint8_t>(pixel.gray());
     pixel = BmpImage::BmpPixel{
         .red = gray,
         .green = gray,
@@ -99,7 +99,7 @@ void task2() {
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
   print_image(raw_img);
-  auto hist = BarPlot::generate_gray_scale_histogram(raw_img);
+  auto hist = Plot::generate_gray_scale_histogram(raw_img);
   print_image(hist);
   std::ofstream hist_file("output/hist_before.bmp", std::ios::binary);
   BmpImage::write_bmp(hist_file, hist);
@@ -108,23 +108,59 @@ void task2() {
   print_image(balanced_img);
   std::ofstream balanced_img_file("output/balanced_img.bmp", std::ios::binary);
   BmpImage::write_bmp(balanced_img_file, balanced_img);
-  auto balanced_hist = BarPlot::generate_gray_scale_histogram(balanced_img);
+  auto balanced_hist = Plot::generate_gray_scale_histogram(balanced_img);
   print_image(balanced_hist);
   std::ofstream balanced_hist_file("output/hist_after.bmp", std::ios::binary);
   BmpImage::write_bmp(balanced_hist_file, balanced_hist);
 }
 
+void task3() {
+  std::cout << "Input the path of the image: " << std::endl;
+  std::string path;
+  std::cin >> path;
+  std::ifstream in_file(path, std::ios::binary);
+  auto raw_img = BmpImage::read_bmp(in_file);
+  std::cout << "Input Image:" << std::endl;
+  print_image(raw_img);
+  auto avg_filtered_image = raw_img;
+  auto value = 1.0 / 25;
+  Convolution::apply_kernel(
+    avg_filtered_image,
+    {
+      {value, value, value, value, value},
+      {value, value, value, value, value},
+      {value, value, value, value, value},
+      {value, value, value, value, value},
+      {value, value, value, value, value},
+    }
+  );
+  std::cout << "average filtered" << std::endl;
+  print_image(avg_filtered_image);
+  std::ofstream avg_filtered_file("output/avg_filtered.bmp", std::ios::binary);
+  BmpImage::write_bmp(avg_filtered_file, avg_filtered_image);
+  auto mid_filtered_image = raw_img;
+  Convolution::apply_mid_value_kernel(
+    mid_filtered_image,
+    5,
+    (5 * 5) / 2
+  );
+  print_image(mid_filtered_image);
+  std::ofstream mid_filtered_file("output/mid_filtered.bmp", std::ios::binary);
+  BmpImage::write_bmp(mid_filtered_file, mid_filtered_image);
+}
+
 int main() {
-  task2();
+  // task1();
+  task3();
   // std::ifstream in_file("input/lena.bmp", std::ios::binary);
   // auto raw_img = BmpImage::read_bmp(in_file);
-  // auto p = BarPlot::generate_gray_scale_histogram(raw_img, 256, 1024);
+  // auto p = Plot::generate_gray_scale_histogram(raw_img, 256, 1024);
   // print_image(p);
   // std::ofstream f("output/bar_plot.bmp");
   // BmpImage::write_bmp(f, p);
-  // auto img = BarPlot::generate_blank_canvas(10, 10);
+  // auto img = Plot::generate_blank_canvas(10, 10);
   // std::vector<int> values = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  // BarPlot::bar_plot(img, values, 10);
+  // Plot::bar_plot(img, values, 10);
   // print_image(img);
   // img.regenerate_header();
   // std::ofstream file("bar_plot.bmp", std::ios::binary);

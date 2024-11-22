@@ -14,6 +14,7 @@
 #include <set>
 #include <thread>
 #include <vector>
+#include <format>
 
 namespace BmpImage {
 struct BmpFileHeader {
@@ -60,7 +61,7 @@ struct BmpPixel {
   uint8_t blue;
   uint8_t alpha;
 
-  uint8_t gray() { return 0.299 * red + 0.587 * green + 0.114 * blue; }
+  uint8_t gray() const { return 0.299 * red + 0.587 * green + 0.114 * blue; }
 };
 
 struct ColorPalette {
@@ -98,6 +99,14 @@ struct BmpImage {
     for (auto color : unique_colors) {
       palette.data.push_back({std::get<0>(color), std::get<1>(color),
                               std::get<2>(color), std::get<3>(color)});
+    }
+    if (unique_colors.size() > 256) {
+      throw std::runtime_error(
+        std::format(
+          "Should be fewer than 256 colors, but got {} colors",
+          unique_colors.size()
+        )
+      );
     }
   }
 
