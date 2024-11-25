@@ -374,7 +374,7 @@ void write_24_bit_image(std::ofstream &file, BmpImage &bmpImage) {
 }
 
 void write_bmp(std::ofstream &file, BmpImage &bmpImage) {
-  if(bmpImage.header.infoHeader.bitsPerPixel == 8) {
+  if (bmpImage.header.infoHeader.bitsPerPixel == 8) {
     bmpImage.regenerate_palette();
     bmpImage.regenerate_header();
   }

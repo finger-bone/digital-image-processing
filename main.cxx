@@ -1,13 +1,13 @@
 #include "lib/bmp_image.hxx"
 #include "lib/convolution.hxx"
+#include "lib/linalg.hxx"
+#include "lib/linear_transform.hxx"
 #include "lib/numeric_array.hxx"
 #include "lib/plot.hxx"
 #include "lib/terminal_print.hxx"
-#include "lib/linear_transform.hxx"
-#include "lib/linalg.hxx"
 
-#include <fstream>
 #include <cmath>
+#include <fstream>
 
 void task1() {
   std::cout << "Input the path of the image: " << std::endl;
@@ -156,62 +156,56 @@ void task4() {
   print_image(raw_img);
   raw_img.change_to_twenty_four_bit();
   auto scaled_img = LinearTransform::linear_transform(
-      raw_img,
-      Linalg::LinearTransformMatrix().scale(0.5, 0.5).take()
-  );
+      raw_img, Linalg::LinearTransformMatrix().scale(0.5, 0.5).take());
   std::cout << "Scaled Image:" << std::endl;
   print_image(scaled_img);
   std::ofstream scaled_img_file("output/scaled_img.bmp", std::ios::binary);
   BmpImage::write_bmp(scaled_img_file, scaled_img);
 
   auto rotated_img = LinearTransform::linear_transform(
-      raw_img,
-      Linalg::LinearTransformMatrix().rotate(3.14 / 4).take()
-  );
+      raw_img, Linalg::LinearTransformMatrix().rotate(3.14 / 4).take());
   std::ofstream rotated_img_file("output/rotated_img.bmp", std::ios::binary);
   BmpImage::write_bmp(rotated_img_file, rotated_img);
   std::cout << "Rotated Image:" << std::endl;
   print_image(rotated_img);
 
   auto translated_img = LinearTransform::linear_transform(
-      raw_img,
-      Linalg::LinearTransformMatrix().translate(100, 100).take()
-  );
-  std::ofstream translated_img_file("output/translated_img.bmp", std::ios::binary);
+      raw_img, Linalg::LinearTransformMatrix().translate(100, 100).take());
+  std::ofstream translated_img_file("output/translated_img.bmp",
+                                    std::ios::binary);
   BmpImage::write_bmp(translated_img_file, translated_img);
   std::cout << "Translated Image:" << std::endl;
   print_image(translated_img);
 
   auto flipped_image = LinearTransform::linear_transform(
-      raw_img,
-      Linalg::LinearTransformMatrix()
-      .translate(-raw_img.header.infoHeader.width, 0)
-      .scale(-1, 1)
-      .take()
-  );
+      raw_img, Linalg::LinearTransformMatrix()
+                   .translate(-raw_img.header.infoHeader.width, 0)
+                   .scale(-1, 1)
+                   .take());
   std::ofstream flipped_img_file("output/flipped_img.bmp", std::ios::binary);
   BmpImage::write_bmp(flipped_img_file, flipped_image);
   std::cout << "Flipped Image:" << std::endl;
   print_image(flipped_image);
 
   auto half_height = static_cast<double>(raw_img.header.infoHeader.height) / 2;
-  auto perspective_img = LinearTransform::linear_transform(
-      raw_img,
-      Linalg::LinearTransformMatrix()
-      .translate(0, -half_height)
-      .perspective(0.001, 0)
-      .translate(0, half_height)
-      .take()
-  );
-  std::ofstream perspective_img_file("output/perspective_img.bmp", std::ios::binary);
+  auto perspective_img =
+      LinearTransform::linear_transform(raw_img, Linalg::LinearTransformMatrix()
+                                                     .translate(0, -half_height)
+                                                     .perspective(0.001, 0)
+                                                     .translate(0, half_height)
+                                                     .take());
+  std::ofstream perspective_img_file("output/perspective_img.bmp",
+                                     std::ios::binary);
   BmpImage::write_bmp(perspective_img_file, perspective_img);
   std::cout << "Perspective Image:" << std::endl;
   print_image(perspective_img);
 
-  auto combined = LinearTransform::linear_transform(
-      raw_img,
-      Linalg::LinearTransformMatrix().scale(0.5, 0.5).translate(10, -10).rotate(3.14 / 4).take()
-  );
+  auto combined =
+      LinearTransform::linear_transform(raw_img, Linalg::LinearTransformMatrix()
+                                                     .scale(0.5, 0.5)
+                                                     .translate(10, -10)
+                                                     .rotate(3.14 / 4)
+                                                     .take());
   std::ofstream combined_img_file("output/combined_img.bmp", std::ios::binary);
   BmpImage::write_bmp(combined_img_file, combined);
   std::cout << "Combined Image:" << std::endl;
