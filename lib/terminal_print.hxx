@@ -4,8 +4,8 @@
 #include "bmp_image.hxx"
 #include <algorithm>
 #include <cstdio>
-#include <sys/ioctl.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 
 void print_image(const BmpImage::BmpImage &image) {
   struct winsize w;

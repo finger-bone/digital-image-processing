@@ -86,6 +86,16 @@ struct BmpImage {
   Image<BmpPixel> image;
   ColorPalette palette;
 
+  void pretty_print_info() {
+    std::cout << "BMP Image Info:\n";
+    std::cout << "File Type: " << header.fileHeader.fileType << "\n";
+    std::cout << "File Size: " << header.fileHeader.fileSize << " bytes\n";
+    std::cout << "Palette Size: " << palette.data.size() << " colors\n";
+    std::cout << "Image Width: " << image.size.width << " pixels\n";
+    std::cout << "Image Height: " << image.size.height << " pixels\n";
+    std::cout << "Bits per Pixel: " << header.infoHeader.bitsPerPixel << "\n";
+  }
+
   void set_bbp(int bbp) { header.infoHeader.bitsPerPixel = bbp; }
 
   void regenerate_palette() {
@@ -120,6 +130,12 @@ struct BmpImage {
   void change_to_eight_bit() {
     this->set_bbp(8);
     this->regenerate_palette();
+    this->regenerate_header();
+  }
+
+  void change_to_twenty_four_bit() {
+    this->palette.data.resize(0);
+    this->set_bbp(24);
     this->regenerate_header();
   }
 };
@@ -358,6 +374,10 @@ void write_24_bit_image(std::ofstream &file, BmpImage &bmpImage) {
 }
 
 void write_bmp(std::ofstream &file, BmpImage &bmpImage) {
+  if(bmpImage.header.infoHeader.bitsPerPixel == 8) {
+    bmpImage.regenerate_palette();
+    bmpImage.regenerate_header();
+  }
   write_header(file, bmpImage.header);
   if (bmpImage.header.infoHeader.bitsPerPixel == 8) {
     write_palette(file, bmpImage.palette.data);

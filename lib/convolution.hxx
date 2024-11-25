@@ -1,12 +1,12 @@
 #ifndef CONVOLUTION_HXX
 #define CONVOLUTION_HXX
 
-namespace Convolution {
-
 #include "bmp_image.hxx"
 #include "numeric_array.hxx"
 #include <algorithm>
 #include <vector>
+
+namespace Convolution {
 
 BmpImage::BmpPixel &get_pixel_with_padding(BmpImage::BmpImage &img, int x,
                                            int y) {
