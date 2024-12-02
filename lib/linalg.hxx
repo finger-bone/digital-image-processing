@@ -222,7 +222,6 @@ template <typename T> struct Matrix {
       }
     }
 
-    // Step 2: Print the matrix with proper padding
     for (const auto &row : data) {
       os << "| ";
       for (const auto &value : row) {
