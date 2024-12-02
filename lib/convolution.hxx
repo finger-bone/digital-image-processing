@@ -17,8 +17,9 @@ BmpImage::BmpPixel &get_pixel_with_padding(BmpImage::BmpImage &img, int x,
   return img.image.data.data[y * width + x];
 }
 
-BmpImage::BmpImage apply_kernel(BmpImage::BmpImage &img_src,
-                  const std::vector<std::vector<double>> &kernel) {
+BmpImage::BmpImage
+apply_kernel(BmpImage::BmpImage &img_src,
+             const std::vector<std::vector<double>> &kernel) {
   BmpImage::BmpImage img = img_src;
   int kernel_size = kernel.size();
   int kernel_half_size = kernel_size / 2;
@@ -71,8 +72,8 @@ BmpImage::BmpImage apply_kernel(BmpImage::BmpImage &img_src,
   return img;
 }
 
-BmpImage::BmpImage apply_mid_value_kernel(BmpImage::BmpImage &img_src, size_t kernel_size,
-                            int k) {
+BmpImage::BmpImage apply_mid_value_kernel(BmpImage::BmpImage &img_src,
+                                          size_t kernel_size, int k) {
   BmpImage::BmpImage img = img_src;
   if (kernel_size % 2 == 0) {
     throw std::invalid_argument("Kernel size must be odd.");

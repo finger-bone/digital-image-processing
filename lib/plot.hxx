@@ -33,7 +33,8 @@ BmpImage::BmpImage generate_blank_canvas(int width, int height,
                 }}};
 }
 
-void draw_line(BmpImage::BmpImage &image, int x1, int y1, int x2, int y2, BmpImage::BmpPixel color = {255, 0, 0, 255}) {
+void draw_line(BmpImage::BmpImage &image, int x1, int y1, int x2, int y2,
+               BmpImage::BmpPixel color = {255, 0, 0, 255}) {
   // x and y are from bottom left corner
   int dx = x2 - x1;
   int dy = y2 - y1;
@@ -87,7 +88,7 @@ BmpImage::BmpImage generate_gray_scale_histogram(BmpImage::BmpImage &image,
                                                  int chunks = 256) {
   BmpImage::BmpImage plot = generate_blank_canvas(width, height);
   std::vector<int> values(256);
-  image.image.data.foreach_sync ([&](BmpImage::BmpPixel p, size_t idx) {
+  image.image.data.foreach_sync([&](BmpImage::BmpPixel p, size_t idx) {
     int gray_value = p.gray();
     values[gray_value]++;
   });

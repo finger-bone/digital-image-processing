@@ -37,9 +37,9 @@ struct BmpInfoHeader {
       compression;    // 4 bytes: Compression type, 0 = BI_RGB (no compression)
   uint32_t imageSize; // 4 bytes: Size of the image data in bytes, can be 0 if
                       // no compression
-  int32_t xPixelsPerMeter; // 4 bytes: Horizontal resolution (pixels per meter)
-  int32_t yPixelsPerMeter; // 4 bytes: Vertical resolution (pixels per meter)
-  uint32_t totalColors; // 4 bytes: Number of colors in the color palette
+  int32_t xPixelsPerMeter;  // 4 bytes: Horizontal resolution (pixels per meter)
+  int32_t yPixelsPerMeter;  // 4 bytes: Vertical resolution (pixels per meter)
+  uint32_t totalColors;     // 4 bytes: Number of colors in the color palette
   uint32_t importantColors; // 4 bytes: Number of important colors, 0 if all are
                             // important
 };
@@ -251,13 +251,12 @@ BmpImage read_bmp(std::ifstream &file) {
     throw std::runtime_error("Not a BMP file");
   }
   auto palette = ColorPalette{};
-  if(has_palette(header.infoHeader.bitsPerPixel)) {
+  if (has_palette(header.infoHeader.bitsPerPixel)) {
     palette = read_palette(file, header);
   }
   auto bbp = header.infoHeader.bitsPerPixel;
-  auto image_size = abs(
-    static_cast<int64_t>(header.infoHeader.width) * static_cast<int64_t>(header.infoHeader.height)
-  );
+  auto image_size = abs(static_cast<int64_t>(header.infoHeader.width) *
+                        static_cast<int64_t>(header.infoHeader.height));
   auto padding = (4 - (header.infoHeader.width * bbp / 8) % 4) % 4;
   auto image = std::vector<BmpPixel>();
   image.resize(image_size);
