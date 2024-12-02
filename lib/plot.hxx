@@ -33,6 +33,20 @@ BmpImage::BmpImage generate_blank_canvas(int width, int height,
                 }}};
 }
 
+void draw_line(BmpImage::BmpImage &image, int x1, int y1, int x2, int y2, BmpImage::BmpPixel color = {255, 0, 0, 255}) {
+  // x and y are from bottom left corner
+  int dx = x2 - x1;
+  int dy = y2 - y1;
+  int steps = std::max(std::abs(dx), std::abs(dy));
+  double x_inc = dx / (double)steps;
+  double y_inc = dy / (double)steps;
+  for (int i = 0; i < steps; i++) {
+    int x = x1 + i * x_inc;
+    int y = y1 + i * y_inc;
+    image.image.data.data[y * image.image.size.width + x] = color;
+  }
+}
+
 void bar_plot(BmpImage::BmpImage &image, std::vector<int> values, int chunks,
               BmpImage::BmpPixel color = {0, 0, 0, 255}) {
   int width = image.image.size.width;
@@ -73,8 +87,8 @@ BmpImage::BmpImage generate_gray_scale_histogram(BmpImage::BmpImage &image,
                                                  int chunks = 256) {
   BmpImage::BmpImage plot = generate_blank_canvas(width, height);
   std::vector<int> values(256);
-  image.image.data.foreach ([&](BmpImage::BmpPixel p, size_t idx) {
-    int gray_value = (p.red + p.green + p.blue) / 3;
+  image.image.data.foreach_sync ([&](BmpImage::BmpPixel p, size_t idx) {
+    int gray_value = p.gray();
     values[gray_value]++;
   });
   bar_plot(plot, values, chunks);

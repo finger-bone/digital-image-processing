@@ -7,6 +7,8 @@
 #include <thread>
 #include <tuple>
 #include <vector>
+#include <array>
+#include <tuple>
 
 namespace Linalg {
 
@@ -121,7 +123,7 @@ template <typename T> struct Matrix {
     }
 
     // Step 2: Jacobi method for bidiagonalization
-    const T tolerance = 1e-10; // Convergence threshold
+    const T tolerance = 1e-5; // Convergence threshold
     bool converged = false;
     while (!converged) {
       converged = true;
@@ -273,6 +275,54 @@ struct LinearTransformMatrix {
     this->data = Matrix<double>({{1, 0, 0}, {0, 1, 0}, {x, y, 1}}) * this->data;
     return *this;
   }
+
+  LinearTransformMatrix &perspective_by_points(
+    std::array<std::tuple<double, double>, 4> src_points,
+    std::array<std::tuple<double, double>, 4> dst_points) {
+
+    // Construct the linear system to solve for the transformation matrix
+    Matrix<double> A(8, 8);
+    Matrix<double> b(8, 1);
+
+    for (int i = 0; i < 4; i++) {
+        double x_src = std::get<0>(src_points[i]);
+        double y_src = std::get<1>(src_points[i]);
+        double x_dst = std::get<0>(dst_points[i]);
+        double y_dst = std::get<1>(dst_points[i]);
+
+        A[2 * i][0] = x_src;
+        A[2 * i][1] = y_src;
+        A[2 * i][2] = 1;
+        A[2 * i][3] = 0;
+        A[2 * i][4] = 0;
+        A[2 * i][5] = 0;
+        A[2 * i][6] = -x_src * x_dst;
+        A[2 * i][7] = -y_src * x_dst;
+
+        A[2 * i + 1][0] = 0;
+        A[2 * i + 1][1] = 0;
+        A[2 * i + 1][2] = 0;
+        A[2 * i + 1][3] = x_src;
+        A[2 * i + 1][4] = y_src;
+        A[2 * i + 1][5] = 1;
+        A[2 * i + 1][6] = -x_src * y_dst;
+        A[2 * i + 1][7] = -y_src * y_dst;
+
+        b[2 * i][0] = x_dst;
+        b[2 * i + 1][0] = y_dst;
+    }
+    // Solve for the perspective transformation parameters
+    auto A_pinv = A.pinv();
+    Matrix<double> h = A_pinv * b;
+
+    // Construct the transformation matrix
+    this->data = Matrix<double>({
+        {h[0][0], h[1][0], h[2][0]},
+        {h[3][0], h[4][0], h[5][0]},
+        {h[6][0], h[7][0], 1.0}
+    }) * this->data;
+    return *this;
+}
 
   Matrix<double> take() { return this->data; }
 };

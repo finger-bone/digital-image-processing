@@ -17,8 +17,9 @@ BmpImage::BmpPixel &get_pixel_with_padding(BmpImage::BmpImage &img, int x,
   return img.image.data.data[y * width + x];
 }
 
-void apply_kernel(BmpImage::BmpImage &img,
+BmpImage::BmpImage apply_kernel(BmpImage::BmpImage &img_src,
                   const std::vector<std::vector<double>> &kernel) {
+  BmpImage::BmpImage img = img_src;
   int kernel_size = kernel.size();
   int kernel_half_size = kernel_size / 2;
 
@@ -66,13 +67,13 @@ void apply_kernel(BmpImage::BmpImage &img,
     new_pixel.green = std::clamp(static_cast<int>(green), 0, 255);
     new_pixel.blue = std::clamp(static_cast<int>(blue), 0, 255);
   });
-
-  // Replace the original image data with the convolved data
   img.image.data = newData;
+  return img;
 }
 
-void apply_mid_value_kernel(BmpImage::BmpImage &img, size_t kernel_size,
+BmpImage::BmpImage apply_mid_value_kernel(BmpImage::BmpImage &img_src, size_t kernel_size,
                             int k) {
+  BmpImage::BmpImage img = img_src;
   if (kernel_size % 2 == 0) {
     throw std::invalid_argument("Kernel size must be odd.");
   }
@@ -111,9 +112,8 @@ void apply_mid_value_kernel(BmpImage::BmpImage &img, size_t kernel_size,
     auto target_pixel = window[k];
     newData.data[idx] = target_pixel;
   });
-
-  // Replace the original image data with the convolved data
   img.image.data = newData;
+  return img;
 }
 
 } // namespace Convolution

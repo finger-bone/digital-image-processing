@@ -39,8 +39,7 @@ struct BmpInfoHeader {
                       // no compression
   int32_t xPixelsPerMeter; // 4 bytes: Horizontal resolution (pixels per meter)
   int32_t yPixelsPerMeter; // 4 bytes: Vertical resolution (pixels per meter)
-  uint32_t totalColors; // 4 bytes: Number of colors in the color palette, 0 if
-                        // all colors are important
+  uint32_t totalColors; // 4 bytes: Number of colors in the color palette
   uint32_t importantColors; // 4 bytes: Number of important colors, 0 if all are
                             // important
 };
@@ -122,6 +121,7 @@ struct BmpImage {
     int palette_size = this->palette.data.size() * 4;
     int image_size = this->image.data.data.size();
     int bbp = this->header.infoHeader.bitsPerPixel;
+    this->header.infoHeader.totalColors = palette.data.size();
     this->header.fileHeader.fileSize =
         header_size + palette_size + image_size * (bbp / 8);
     this->header.fileHeader.pixelDataOffset = header_size + palette_size;
@@ -143,8 +143,6 @@ struct BmpImage {
 bool has_palette(int bbp) { return bbp <= 8; }
 
 void read_header(std::ifstream &file, BmpHeader &header) {
-  size_t file_header_size = sizeof(BmpFileHeader);
-  size_t info_header_size = sizeof(BmpInfoHeader);
   file.read(reinterpret_cast<char *>(&header.fileHeader.fileType),
             sizeof(header.fileHeader.fileType));
   file.read(reinterpret_cast<char *>(&header.fileHeader.fileSize),
@@ -252,11 +250,17 @@ BmpImage read_bmp(std::ifstream &file) {
   if (header.fileHeader.fileType != 0x4D42) {
     throw std::runtime_error("Not a BMP file");
   }
-  auto palette = read_palette(file, header);
+  auto palette = ColorPalette{};
+  if(has_palette(header.infoHeader.bitsPerPixel)) {
+    palette = read_palette(file, header);
+  }
   auto bbp = header.infoHeader.bitsPerPixel;
-  auto image_size = header.infoHeader.width * header.infoHeader.height;
+  auto image_size = abs(
+    static_cast<int64_t>(header.infoHeader.width) * static_cast<int64_t>(header.infoHeader.height)
+  );
   auto padding = (4 - (header.infoHeader.width * bbp / 8) % 4) % 4;
-  auto image = std::vector<BmpPixel>(image_size);
+  auto image = std::vector<BmpPixel>();
+  image.resize(image_size);
   if (has_palette(bbp)) {
     if (bbp == 8) {
       image = read_8_bit_image(file, header, palette);

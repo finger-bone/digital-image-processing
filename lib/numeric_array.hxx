@@ -76,6 +76,18 @@ template <typename T> struct NumericArray {
     return result;
   }
 
+  void foreach_sync(std::function<void(T &, size_t)> func) {
+    for (int i = 0; i < data.size(); i++) {
+      func(data[i], i);
+    }
+  }
+
+  void foreach_sync(std::function<void(T &)> func) {
+    for (int i = 0; i < data.size(); i++) {
+      func(data[i]);
+    }
+  }
+
   void foreach (std::function<void(T &, size_t)> func,
                 int workers = std::thread::hardware_concurrency()) {
     int data_size = data.size();

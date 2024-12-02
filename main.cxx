@@ -5,6 +5,7 @@
 #include "lib/numeric_array.hxx"
 #include "lib/plot.hxx"
 #include "lib/terminal_print.hxx"
+#include "lib/segmentation.hxx"
 
 #include <cmath>
 #include <fstream>
@@ -125,9 +126,8 @@ void task3() {
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
   print_image(raw_img);
-  auto avg_filtered_image = raw_img;
   auto value = 1.0 / 25;
-  Convolution::apply_kernel(avg_filtered_image,
+  auto avg_filtered_image = Convolution::apply_kernel(raw_img,
                             {
                                 {value, value, value, value, value},
                                 {value, value, value, value, value},
@@ -139,8 +139,7 @@ void task3() {
   print_image(avg_filtered_image);
   std::ofstream avg_filtered_file("output/avg_filtered.bmp", std::ios::binary);
   BmpImage::write_bmp(avg_filtered_file, avg_filtered_image);
-  auto mid_filtered_image = raw_img;
-  Convolution::apply_mid_value_kernel(mid_filtered_image, 5, (5 * 5) / 2);
+  auto mid_filtered_image = Convolution::apply_mid_value_kernel(raw_img, 5, (5 * 5) / 2);
   print_image(mid_filtered_image);
   std::ofstream mid_filtered_file("output/mid_filtered.bmp", std::ios::binary);
   BmpImage::write_bmp(mid_filtered_file, mid_filtered_image);
@@ -190,9 +189,20 @@ void task4() {
   auto half_height = static_cast<double>(raw_img.header.infoHeader.height) / 2;
   auto perspective_img =
       LinearTransform::linear_transform(raw_img, Linalg::LinearTransformMatrix()
-                                                     .translate(0, -half_height)
-                                                     .perspective(0.001, 0)
-                                                     .translate(0, half_height)
+                                                     .perspective_by_points(
+                                                        {
+                                                          std::make_tuple(0., 0.),
+                                                          std::make_tuple(0., raw_img.header.infoHeader.height),
+                                                          std::make_tuple(582., 582.),
+                                                          std::make_tuple(582., raw_img.header.infoHeader.height - 582.)
+                                                        },
+                                                        {
+                                                          std::make_tuple(0., 0.),
+                                                          std::make_tuple(0., raw_img.header.infoHeader.height),
+                                                          std::make_tuple(raw_img.header.infoHeader.width, raw_img.header.infoHeader.height),
+                                                          std::make_tuple(raw_img.header.infoHeader.width, 0.)
+                                                        }
+                                                     )
                                                      .take());
   std::ofstream perspective_img_file("output/perspective_img.bmp",
                                      std::ios::binary);
@@ -212,33 +222,52 @@ void task4() {
   print_image(combined);
 }
 
+void task5() {
+  std::cout << "Input the path of the image: " << std::endl;
+  std::string path;
+  std::cin >> path;
+  std::ifstream in_file(path, std::ios::binary);
+  auto raw_img = BmpImage::read_bmp(in_file);
+  std::cout << "Input Image:" << std::endl;
+  print_image(raw_img);
+  auto segmented_img = Segmentation::segment_by_threshold(raw_img, 128);
+  std::cout << "Segmented Image:" << std::endl;
+  print_image(segmented_img);
+  std::ofstream segmented_img_file("output/segmented.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_img_file, segmented_img);
+  BmpImage::BmpImage segmented_img_histogram = Plot::generate_gray_scale_histogram(raw_img);
+  Plot::draw_line(segmented_img_histogram, 128, 256, 128, 0);
+  std::ofstream segmented_img_histogram_file("output/segmented_histogram.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_img_histogram_file, segmented_img_histogram);
+  auto th_by_iteration = Segmentation::auto_find_threshold_by_iteration(raw_img);
+  std::cout << "Threshold by iteration: " << th_by_iteration << std::endl;
+  auto segmented_img_by_iteration = Segmentation::segment_by_threshold(raw_img, th_by_iteration);
+  std::cout << "Segmented Image by iteration:" << std::endl;
+  print_image(segmented_img_by_iteration);
+  std::ofstream segmented_img_by_iteration_file("output/segmented_img_by_iteration.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_img_by_iteration_file, segmented_img_by_iteration);
+  auto segmented_by_iteration_histogram = Plot::generate_gray_scale_histogram(raw_img);
+  Plot::draw_line(segmented_by_iteration_histogram, th_by_iteration, 256, th_by_iteration, 0);
+  std::ofstream segmented_by_iteration_histogram_file("output/segmented_by_iteration_histogram.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_by_iteration_histogram_file, segmented_by_iteration_histogram);
+  auto th_by_otsu = Segmentation::auto_find_threshold_by_otsu(raw_img);
+  std::cout << "Threshold by otsu: " << th_by_otsu << std::endl;
+  auto segmented_img_by_otsu = Segmentation::segment_by_threshold(raw_img, th_by_otsu);
+  std::cout << "Segmented Image by otsu:" << std::endl;
+  print_image(segmented_img_by_otsu);
+  std::ofstream segmented_img_by_otsu_file("output/segmented_img_by_otsu.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_img_by_otsu_file, segmented_img_by_otsu);
+  auto segmented_by_otsu_histogram = Plot::generate_gray_scale_histogram(raw_img);
+  Plot::draw_line(segmented_by_otsu_histogram, th_by_otsu, 256, th_by_otsu, 0);
+  std::ofstream segmented_by_otsu_histogram_file("output/segmented_by_otsu_histogram.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_by_otsu_histogram_file, segmented_by_otsu_histogram);
+}
+
 int main() {
   // task1();
   // task3();
+  // task3();
   task4();
-  // std::ifstream in_file("input/lena.bmp", std::ios::binary);
-  // auto raw_img = BmpImage::read_bmp(in_file);
-  // auto p = Plot::generate_gray_scale_histogram(raw_img, 256, 1024);
-  // print_image(p);
-  // std::ofstream f("output/bar_plot.bmp");
-  // BmpImage::write_bmp(f, p);
-  // auto img = Plot::generate_blank_canvas(10, 10);
-  // std::vector<int> values = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  // Plot::bar_plot(img, values, 10);
-  // print_image(img);
-  // img.regenerate_header();
-  // std::ofstream file("bar_plot.bmp", std::ios::binary);
-  // BmpImage::write_bmp(file, img);
-  // auto img = Image::load_bmp("input/rgb3.bmp");
-
-  // img.data.foreach([](Image::BmpRgbPixel pixel) {
-  //     return Image::BmpRgbPixel{
-  //         .red = pixel.red,
-  //         .green = pixel.green,
-  //         .blue = 0,
-  //     };
-  // });
-
-  // Image::save_bmp("rgb3_rg.bmp", img);
+  // task5();
   return 0;
 }
