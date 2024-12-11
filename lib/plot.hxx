@@ -50,8 +50,10 @@ void draw_line(BmpImage::BmpImage &image, int x1, int y1, int x2, int y2,
   }
 }
 
-void draw_points(BmpImage::BmpImage &image, const std::set<std::tuple<int,int>>& points, BmpImage::BmpPixel color = {255, 0, 0, 255}) {
-  image.image.data.foreach([&](BmpImage::BmpPixel &p, size_t idx) {
+void draw_points(BmpImage::BmpImage &image,
+                 const std::set<std::tuple<int, int>> &points,
+                 BmpImage::BmpPixel color = {255, 0, 0, 255}) {
+  image.image.data.foreach ([&](BmpImage::BmpPixel &p, size_t idx) {
     int x = idx % image.image.size.width;
     int y = idx / image.image.size.width;
     if (points.find({x, y}) != points.end()) {
@@ -60,11 +62,13 @@ void draw_points(BmpImage::BmpImage &image, const std::set<std::tuple<int,int>>&
   });
 }
 
-void draw_a_point(BmpImage::BmpImage &image, int x, int y, BmpImage::BmpPixel color = {255, 255, 0, 255}) {
+void draw_a_point(BmpImage::BmpImage &image, int x, int y,
+                  BmpImage::BmpPixel color = {255, 255, 0, 255}) {
   image.image.data.data[y * image.image.size.width + x] = color;
 }
 
-void draw_box(BmpImage::BmpImage &image, int l, int r, int t, int b, BmpImage::BmpPixel color = {255, 0, 0, 255}) {
+void draw_box(BmpImage::BmpImage &image, int l, int r, int t, int b,
+              BmpImage::BmpPixel color = {255, 0, 0, 255}) {
   draw_line(image, l, t, l, b, color);
   draw_line(image, r, t, r, b, color);
   draw_line(image, l, t, r, t, color);
