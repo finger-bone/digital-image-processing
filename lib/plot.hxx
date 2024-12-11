@@ -4,6 +4,8 @@
 #include "bmp_image.hxx"
 #include "numeric_array.hxx"
 
+#include <set>
+#include <tuple>
 #include <vector>
 
 namespace Plot {
@@ -46,6 +48,27 @@ void draw_line(BmpImage::BmpImage &image, int x1, int y1, int x2, int y2,
     int y = y1 + i * y_inc;
     image.image.data.data[y * image.image.size.width + x] = color;
   }
+}
+
+void draw_points(BmpImage::BmpImage &image, const std::set<std::tuple<int,int>>& points, BmpImage::BmpPixel color = {255, 0, 0, 255}) {
+  image.image.data.foreach([&](BmpImage::BmpPixel &p, size_t idx) {
+    int x = idx % image.image.size.width;
+    int y = idx / image.image.size.width;
+    if (points.find({x, y}) != points.end()) {
+      p = color;
+    }
+  });
+}
+
+void draw_a_point(BmpImage::BmpImage &image, int x, int y, BmpImage::BmpPixel color = {255, 255, 0, 255}) {
+  image.image.data.data[y * image.image.size.width + x] = color;
+}
+
+void draw_box(BmpImage::BmpImage &image, int l, int r, int t, int b, BmpImage::BmpPixel color = {255, 0, 0, 255}) {
+  draw_line(image, l, t, l, b, color);
+  draw_line(image, r, t, r, b, color);
+  draw_line(image, l, t, r, t, color);
+  draw_line(image, l, b, r, b, color);
 }
 
 void bar_plot(BmpImage::BmpImage &image, std::vector<int> values, int chunks,
