@@ -1,12 +1,12 @@
 #include "lib/bmp_image.hxx"
 #include "lib/convolution.hxx"
+#include "lib/frequency.hxx"
 #include "lib/linalg.hxx"
 #include "lib/linear_transform.hxx"
 #include "lib/numeric_array.hxx"
 #include "lib/plot.hxx"
 #include "lib/segmentation.hxx"
 #include "lib/terminal_print.hxx"
-#include "lib/frequency.hxx"
 
 #include <cmath>
 #include <fstream>
@@ -521,17 +521,16 @@ void task13() {
 
   auto fft_img = raw_img;
   fft_img.change_to_twenty_four_bit();
-  auto fft_img_data = fft_img.get_channel(
-    [](BmpImage::BmpPixel pixel) {
-      return pixel.blue; 
-    }
-  );
+  auto fft_img_data =
+      fft_img.get_channel([](BmpImage::BmpPixel pixel) { return pixel.blue; });
   std::ofstream fft_img_file("output/fft_img.bmp", std::ios::binary);
   BmpImage::write_bmp(fft_img_file, fft_img);
 
-  auto gray = fft_img.get_channel([&](BmpImage::BmpPixel pixel) {
-    return pixel.gray();
-  }).interpret(fft_img.header.infoHeader.height, fft_img.header.infoHeader.width);
+  auto gray =
+      fft_img
+          .get_channel([&](BmpImage::BmpPixel pixel) { return pixel.gray(); })
+          .interpret(fft_img.header.infoHeader.height,
+                     fft_img.header.infoHeader.width);
   Frequency::pad(gray);
   std::ofstream fft_img_gray("output/fft_img_gray.bmp", std::ios::binary);
   auto gray_img = Frequency::plot(gray);
@@ -557,7 +556,6 @@ void task13() {
   std::ofstream ifft_img_file("output/ifft_img.bmp", std::ios::binary);
   BmpImage::write_bmp(ifft_img_file, ifft_img);
 }
-
 
 int main() {
   // task1();
