@@ -138,6 +138,16 @@ struct BmpImage {
     this->set_bbp(24);
     this->regenerate_header();
   }
+
+  NumericArray::NumericArray<double> get_channel(
+    std::function<double(BmpPixel)> reduce
+  ) {
+    NumericArray::NumericArray<double> result(this->image.size.width * this->image.size.height, 0);
+    for (int i = 0; i < this->image.data.data.size(); i++) {
+      result.data[i] = reduce(this->image.data.data[i]);
+    }
+    return result;
+  }
 };
 
 bool has_palette(int bbp) { return bbp <= 8; }

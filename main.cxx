@@ -6,6 +6,7 @@
 #include "lib/plot.hxx"
 #include "lib/segmentation.hxx"
 #include "lib/terminal_print.hxx"
+#include "lib/frequency.hxx"
 
 #include <cmath>
 #include <fstream>
@@ -508,6 +509,56 @@ void task7() {
                       segmented_by_otsu_log_filtered_image);
 }
 
+void task13() {
+  std::cout << "Input the path of the image: " << std::endl;
+  std::string path;
+  std::cin >> path;
+  std::ifstream in_file(path, std::ios::binary);
+  auto raw_img = BmpImage::read_bmp(in_file);
+  std::cout << "Input Image:" << std::endl;
+  print_image(raw_img);
+  // fast fourier transform
+
+  auto fft_img = raw_img;
+  fft_img.change_to_twenty_four_bit();
+  auto fft_img_data = fft_img.get_channel(
+    [](BmpImage::BmpPixel pixel) {
+      return pixel.blue; 
+    }
+  );
+  std::ofstream fft_img_file("output/fft_img.bmp", std::ios::binary);
+  BmpImage::write_bmp(fft_img_file, fft_img);
+
+  auto gray = fft_img.get_channel([&](BmpImage::BmpPixel pixel) {
+    return pixel.gray();
+  }).interpret(fft_img.header.infoHeader.height, fft_img.header.infoHeader.width);
+  Frequency::pad(gray);
+  std::ofstream fft_img_gray("output/fft_img_gray.bmp", std::ios::binary);
+  auto gray_img = Frequency::plot(gray);
+  gray_img.regenerate_header();
+  BmpImage::write_bmp(fft_img_gray, gray_img);
+
+  auto fft_transformed = Frequency::fft(gray);
+  Frequency::cutoff_freq(fft_transformed, 32, true);
+  auto [mag, phase] = Frequency::polar_transform(fft_transformed);
+
+  std::ofstream fft_mag("output/fft_mag.bmp", std::ios::binary);
+  auto fft_mag_img = Frequency::plot(mag);
+  fft_mag_img.regenerate_header();
+  BmpImage::write_bmp(fft_mag, fft_mag_img);
+
+  std::ofstream fft_phase("output/fft_phase.bmp", std::ios::binary);
+  auto fft_phase_img = Frequency::plot(phase);
+  fft_phase_img.regenerate_header();
+  BmpImage::write_bmp(fft_phase, fft_phase_img);
+
+  auto ifft_transformed = Frequency::ifft(fft_transformed);
+  auto ifft_img = Frequency::plot(ifft_transformed);
+  std::ofstream ifft_img_file("output/ifft_img.bmp", std::ios::binary);
+  BmpImage::write_bmp(ifft_img_file, ifft_img);
+}
+
+
 int main() {
   // task1();
   // task3();
@@ -515,6 +566,6 @@ int main() {
   // task4();
   // task5();
   // task6();
-  task7();
+  task13();
   return 0;
 }
