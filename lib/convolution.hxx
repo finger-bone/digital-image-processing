@@ -1,5 +1,5 @@
-#ifndef CONVOLUTION_HXX
-#define CONVOLUTION_HXX
+#ifndef IMAGE_PROCESSING_CONVOLUTION_HXX
+#define IMAGE_PROCESSING_CONVOLUTION_HXX
 
 #include "bmp_image.hxx"
 #include "numeric_array.hxx"

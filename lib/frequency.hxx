@@ -1,5 +1,5 @@
-#ifndef DIGITAL_IMAGE_PROCESSING_FREQUENCY_HXX
-#define DIGITAL_IMAGE_PROCESSING_FREQUENCY_HXX
+#ifndef IMAGE_PROCESSING_FREQUENCY_HXX
+#define IMAGE_PROCESSING_FREQUENCY_HXX
 
 #include "bmp_image.hxx"
 #include "plot.hxx"
@@ -127,17 +127,25 @@ RealMatrix ifft(const ComplexMatrix &matrix) {
   return res;
 }
 
-void cutoff_freq(ComplexMatrix &matrix, double cutoff, bool remove_high = false,
-                 double value = 0) {
+void cutoff_freq(ComplexMatrix &matrix, double cutoff, bool remove_high = false) {
+  cutoff /= 2;
+  int center_x = matrix[0].size() / 2;
+  int center_y = matrix.size() / 2;
   for (int i = 0; i < matrix.size(); i++) {
     for (int j = 0; j < matrix[0].size(); j++) {
-      if (remove_high) {
-        if (i > cutoff && j > cutoff) {
-          matrix[i][j] = {value, 0};
+      if(remove_high) {
+        if(
+          abs(i - center_y) > cutoff ||
+          abs(j - center_x) > cutoff
+        ) {
+          matrix[i][j] = {0, 0};
         }
       } else {
-        if (i < cutoff && j < cutoff) {
-          matrix[i][j] = {value, 0};
+        if(
+          abs(i - center_y) < cutoff &&
+          abs(j - center_x) < cutoff
+        ) {
+          matrix[i][j] = {0, 0};
         }
       }
     }

@@ -7,6 +7,7 @@
 #include "lib/plot.hxx"
 #include "lib/segmentation.hxx"
 #include "lib/terminal_print.hxx"
+#include "lib/hough.hxx"
 
 #include <cmath>
 #include <fstream>
@@ -509,6 +510,189 @@ void task7() {
                       segmented_by_otsu_log_filtered_image);
 }
 
+void task8() {
+  std::cout << "Input the path of the image: " << std::endl;
+  std::string path;
+  std::cin >> path;
+  std::ifstream in_file(path, std::ios::binary);
+  auto raw_img = BmpImage::read_bmp(in_file);
+  std::cout << "Input Image:" << std::endl;
+  print_image(raw_img);
+  auto hough_data = raw_img.get_channel(
+      [&](BmpImage::BmpPixel pixel) { 
+        return static_cast<double>(pixel.gray()) / 256;
+      }
+    );
+
+  auto hough_param = Hough::HoughLineParam{};
+  auto hough_transformed = Hough::hough_linear_transform(hough_data.interpret(
+      raw_img.header.infoHeader.height,
+      raw_img.header.infoHeader.width
+  ), hough_param);
+  auto img = Hough::plot(hough_transformed);
+  img.regenerate_header();
+
+  std::ofstream hough_file("output/hough.bmp", std::ios::binary);
+  BmpImage::write_bmp(hough_file, img);
+
+  auto lines = Hough::get_lines(hough_transformed, hough_param);
+
+  Hough::draw_lines(lines, raw_img);
+
+  for(auto line : lines) {
+    std::cout << std::get<0>(line) << " " << std::get<1>(line) << std::endl;
+  }
+  std::cout << lines.size() << std::endl;
+
+  std::ofstream lines_file("output/lines.bmp", std::ios::binary);
+  BmpImage::write_bmp(lines_file, raw_img);
+}
+
+void task12() {
+  std::cout << "Input the path of the image: " << std::endl;
+  std::string path;
+  std::cin >> path;
+  std::ifstream in_file(path, std::ios::binary);
+  auto raw_img = BmpImage::read_bmp(in_file);
+  std::cout << "Input Image:" << std::endl;
+  print_image(raw_img);
+  auto scale_channel = raw_img.get_channel(
+      [&](BmpImage::BmpPixel pixel) {
+        return std::clamp<double>(static_cast<double>(
+          pixel.blue - (pixel.red + pixel.green) / 2
+        ), 0, 256);
+      }
+  );
+  auto scaled_img = raw_img;
+  scaled_img.image.data.foreach([&](BmpImage::BmpPixel& pixel, size_t idx) {
+    pixel = BmpImage::BmpPixel(
+        pixel.red * scale_channel.data[idx] / 256,
+        pixel.green * scale_channel.data[idx] / 256,
+        pixel.blue * scale_channel.data[idx] / 256,
+        pixel.alpha
+    );
+    pixel = BmpImage::BmpPixel(
+      pixel.gray(),
+      pixel.gray(),
+      pixel.gray(),
+      pixel.alpha
+    );
+  });
+
+  std::ofstream scale_channel_file("output/scaled_img.bmp", std::ios::binary);
+  BmpImage::write_bmp(scale_channel_file, scaled_img);
+
+  // LOG 
+  auto mid_filtered_image = Convolution::apply_mid_value_kernel(
+      scaled_img, 5, 1
+  );
+  auto log_filtered_image =
+      Convolution::apply_kernel(mid_filtered_image, {{0, 0, -1, 0, 0},
+                                          {0, -1, -2, -1, 0},
+                                          {-1, -2, 16, -2, -1},
+                                          {0, -1, -2, -1, 0},
+                                          {0, 0, -1, 0, 0}});
+
+  std::ofstream log_filtered_file("output/log_filtered.bmp", std::ios::binary);
+  BmpImage::write_bmp(log_filtered_file, log_filtered_image);
+  auto th_by_otsu_log_filtered_image =
+      Segmentation::SegmentationByThreshold::auto_find_threshold_by_otsu(
+          log_filtered_image);
+
+  auto segmented_by_otsu_log_filtered_image =
+      Segmentation::SegmentationByThreshold::segment_by_threshold(
+          log_filtered_image, th_by_otsu_log_filtered_image);
+
+  std::ofstream segmented_by_otsu_log_filtered_image_file("output/segmented_by_otsu_log_filtered_image.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_by_otsu_log_filtered_image_file, segmented_by_otsu_log_filtered_image);
+
+  // Hough
+
+  auto hough_data = segmented_by_otsu_log_filtered_image.get_channel(
+      [](BmpImage::BmpPixel pixel) { 
+        return pixel.gray();
+      }
+    );
+
+  auto hough_param = Hough::HoughLineParam{
+    .theta_steps = 360,
+  };
+  auto hough_transformed = Hough::hough_linear_transform(hough_data.interpret(
+      scaled_img.header.infoHeader.height,
+      scaled_img.header.infoHeader.width
+  ), hough_param, true);
+  auto img = Hough::plot(hough_transformed);
+  img.regenerate_header();
+
+  std::ofstream hough_file("output/hough.bmp", std::ios::binary);
+  BmpImage::write_bmp(hough_file, img);
+
+  auto raw_lines = Hough::get_lines_bfs(hough_transformed, hough_param, 1, -1, 0.2);
+  std::cout << raw_lines.size() << std::endl;
+  Hough::draw_lines(raw_lines, segmented_by_otsu_log_filtered_image);
+
+  std::ofstream hough_lines_file("output/hough_lines.bmp", std::ios::binary);
+  BmpImage::write_bmp(hough_lines_file, segmented_by_otsu_log_filtered_image);
+
+  auto intersects = Hough::all_intersects(raw_lines);
+  auto closing_hull = Hough::hull(intersects);
+
+  std::cout << closing_hull.size() << std::endl;
+  auto hull_image = raw_img;
+  for(int i = 0; i < closing_hull.size(); i++) {
+    auto [x, y] = closing_hull[i];
+    auto [x2, y2] = closing_hull[(i + 1) % closing_hull.size()];
+    std::cout << x << " " << y << " " << x2 << " " << y2 << std::endl;
+    Plot::draw_line(hull_image, y, x, y2, x2);
+  }
+
+  std::ofstream closing_hull_file("output/closing_hull.bmp", std::ios::binary);
+  BmpImage::write_bmp(closing_hull_file, hull_image);
+
+
+  auto boxed_area_r = -hull_image.header.infoHeader.width;
+  auto boxed_area_l = hull_image.header.infoHeader.width;
+  auto boxed_area_t = -hull_image.header.infoHeader.height;
+  auto boxed_area_b = hull_image.header.infoHeader.height;
+  for(auto [y, x] : closing_hull) {
+    boxed_area_r = std::max(boxed_area_r, x);
+    boxed_area_l = std::min(boxed_area_l, x);
+    boxed_area_t = std::max(boxed_area_t, y);
+    boxed_area_b = std::min(boxed_area_b, y);
+  }
+
+  auto boxed_area_only = Plot::generate_blank_canvas(boxed_area_r - boxed_area_l, boxed_area_t - boxed_area_b);
+  for(int i = boxed_area_l; i < boxed_area_r; i++) {
+    for(int j = boxed_area_b; j < boxed_area_t; j++) {
+      boxed_area_only.image.data.data[
+          (j - boxed_area_b) * (boxed_area_r - boxed_area_l) + (i - boxed_area_l)
+      ] = raw_img.image.data.data[
+          j * raw_img.header.infoHeader.width + i
+      ];
+    }
+  }
+
+  boxed_area_only.image.data.foreach([&](BmpImage::BmpPixel &pxl, size_t idx) {
+    auto v = (pxl.red + pxl.green) / 2;
+    pxl = BmpImage::BmpPixel(v, v, v, 255);
+  });
+
+  std::ofstream boxed_area_only_file("output/boxed_area_only.bmp", std::ios::binary);
+  BmpImage::write_bmp(boxed_area_only_file, boxed_area_only);
+
+  auto th_by_otsu_boxed = Segmentation::SegmentationByThreshold::auto_find_threshold_by_otsu(
+    boxed_area_only
+  );
+
+  auto segmented_by_otsu_boxed = Segmentation::SegmentationByThreshold::segment_by_threshold(
+    boxed_area_only,
+    th_by_otsu_boxed
+  );
+
+  std::ofstream segmented_by_otsu_boxed_file("output/segmented_by_otsu_boxed.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_by_otsu_boxed_file, segmented_by_otsu_boxed);
+}
+
 void task13() {
   std::cout << "Input the path of the image: " << std::endl;
   std::string path;
@@ -520,15 +704,9 @@ void task13() {
   // fast fourier transform
 
   auto fft_img = raw_img;
-  fft_img.change_to_twenty_four_bit();
-  auto fft_img_data =
-      fft_img.get_channel([](BmpImage::BmpPixel pixel) { return pixel.blue; });
-  std::ofstream fft_img_file("output/fft_img.bmp", std::ios::binary);
-  BmpImage::write_bmp(fft_img_file, fft_img);
-
   auto gray =
       fft_img
-          .get_channel([&](BmpImage::BmpPixel pixel) { return pixel.gray(); })
+          .get_channel([&](BmpImage::BmpPixel pixel) { return (pixel.red + pixel.green) / 2; })
           .interpret(fft_img.header.infoHeader.height,
                      fft_img.header.infoHeader.width);
   Frequency::pad(gray);
@@ -538,9 +716,9 @@ void task13() {
   BmpImage::write_bmp(fft_img_gray, gray_img);
 
   auto fft_transformed = Frequency::fft(gray);
-  Frequency::cutoff_freq(fft_transformed, 32, true);
-  auto [mag, phase] = Frequency::polar_transform(fft_transformed);
 
+  Frequency::cutoff_freq(fft_transformed, 100);
+  auto [mag, phase] = Frequency::polar_transform(fft_transformed);
   std::ofstream fft_mag("output/fft_mag.bmp", std::ios::binary);
   auto fft_mag_img = Frequency::plot(mag);
   fft_mag_img.regenerate_header();
@@ -564,6 +742,9 @@ int main() {
   // task4();
   // task5();
   // task6();
-  task13();
+  // task7();
+  // task8();
+  task12();
+  // task13();
   return 0;
 }

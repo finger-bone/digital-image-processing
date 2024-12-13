@@ -46,6 +46,9 @@ void draw_line(BmpImage::BmpImage &image, int x1, int y1, int x2, int y2,
   for (int i = 0; i < steps; i++) {
     int x = x1 + i * x_inc;
     int y = y1 + i * y_inc;
+    if(x < 0 || x >= image.image.size.width || y < 0 || y >= image.image.size.height) {
+      continue;
+    }
     image.image.data.data[y * image.image.size.width + x] = color;
   }
 }
