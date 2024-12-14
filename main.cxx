@@ -615,7 +615,8 @@ void task12() {
   std::ofstream hough_file("output/hough.bmp", std::ios::binary);
   BmpImage::write_bmp(hough_file, img);
 
-  auto raw_lines = Hough::get_lines_bfs(hough_transformed, hough_param, 1, -1, 0.2, true);
+  auto raw_lines =
+      Hough::get_lines_bfs(hough_transformed, hough_param, 1, -1, 0.2, true);
   std::cout << raw_lines.size() << std::endl;
   Hough::draw_lines(raw_lines, segmented_by_otsu_log_filtered_image);
 
@@ -627,7 +628,7 @@ void task12() {
 
   std::cout << closing_hull.size() << std::endl;
   auto hull_image = raw_img;
-  for(int i = 0; i < closing_hull.size(); i++) {
+  for (int i = 0; i < closing_hull.size(); i++) {
     auto [x, y] = closing_hull[i];
     auto [x2, y2] = closing_hull[(i + 1) % closing_hull.size()];
     std::cout << x << " " << y << " " << x2 << " " << y2 << std::endl;
@@ -637,52 +638,53 @@ void task12() {
   std::ofstream closing_hull_file("output/closing_hull.bmp", std::ios::binary);
   BmpImage::write_bmp(closing_hull_file, hull_image);
 
-
   auto boxed_area_r = -hull_image.header.infoHeader.width;
   auto boxed_area_l = hull_image.header.infoHeader.width;
   auto boxed_area_t = -hull_image.header.infoHeader.height;
   auto boxed_area_b = hull_image.header.infoHeader.height;
-  for(auto [y, x] : closing_hull) {
+  for (auto [y, x] : closing_hull) {
     boxed_area_r = std::max(boxed_area_r, x);
     boxed_area_l = std::min(boxed_area_l, x);
     boxed_area_t = std::max(boxed_area_t, y);
     boxed_area_b = std::min(boxed_area_b, y);
   }
 
-  auto boxed_area_only = Plot::generate_blank_canvas(boxed_area_r - boxed_area_l, boxed_area_t - boxed_area_b);
-  for(int i = boxed_area_l; i < boxed_area_r; i++) {
-    for(int j = boxed_area_b; j < boxed_area_t; j++) {
-      boxed_area_only.image.data.data[
-          (j - boxed_area_b) * (boxed_area_r - boxed_area_l) + (i - boxed_area_l)
-      ] = raw_img.image.data.data[
-          j * raw_img.header.infoHeader.width + i
-      ];
+  auto boxed_area_only = Plot::generate_blank_canvas(
+      boxed_area_r - boxed_area_l, boxed_area_t - boxed_area_b);
+  for (int i = boxed_area_l; i < boxed_area_r; i++) {
+    for (int j = boxed_area_b; j < boxed_area_t; j++) {
+      boxed_area_only.image.data
+          .data[(j - boxed_area_b) * (boxed_area_r - boxed_area_l) +
+                (i - boxed_area_l)] =
+          raw_img.image.data.data[j * raw_img.header.infoHeader.width + i];
     }
   }
 
-  boxed_area_only.image.data.foreach([&](BmpImage::BmpPixel &pxl, size_t idx) {
+  boxed_area_only.image.data.foreach ([&](BmpImage::BmpPixel &pxl, size_t idx) {
     auto v = (pxl.red + pxl.green) / 2;
     pxl = BmpImage::BmpPixel(v, v, v, 255);
   });
-  
-  int max_val = 0;
-  boxed_area_only.image.data.foreach_sync([&](BmpImage::BmpPixel &pxl, size_t idx) {
-    max_val = std::max(max_val, static_cast<int>(pxl.gray()));
-  });
 
-  std::ofstream boxed_area_only_file("output/boxed_area_only.bmp", std::ios::binary);
+  int max_val = 0;
+  boxed_area_only.image.data.foreach_sync(
+      [&](BmpImage::BmpPixel &pxl, size_t idx) {
+        max_val = std::max(max_val, static_cast<int>(pxl.gray()));
+      });
+
+  std::ofstream boxed_area_only_file("output/boxed_area_only.bmp",
+                                     std::ios::binary);
   BmpImage::write_bmp(boxed_area_only_file, boxed_area_only);
 
-  auto th_by_otsu_boxed = Segmentation::SegmentationByThreshold::auto_find_threshold_by_otsu(
-    boxed_area_only
-  );
+  auto th_by_otsu_boxed =
+      Segmentation::SegmentationByThreshold::auto_find_threshold_by_otsu(
+          boxed_area_only);
 
-  auto segmented_by_otsu_boxed = Segmentation::SegmentationByThreshold::segment_by_threshold(
-    boxed_area_only,
-    (max_val + 2 * th_by_otsu_boxed) / 3
-  );
+  auto segmented_by_otsu_boxed =
+      Segmentation::SegmentationByThreshold::segment_by_threshold(
+          boxed_area_only, (max_val + 2 * th_by_otsu_boxed) / 3);
 
-  std::ofstream segmented_by_otsu_boxed_file("output/segmented_by_otsu_boxed.bmp", std::ios::binary);
+  std::ofstream segmented_by_otsu_boxed_file(
+      "output/segmented_by_otsu_boxed.bmp", std::ios::binary);
   BmpImage::write_bmp(segmented_by_otsu_boxed_file, segmented_by_otsu_boxed);
 
   int tolerance = segmented_by_otsu_boxed.header.infoHeader.height / 32;
@@ -693,38 +695,36 @@ void task12() {
   int tolerance_counter = 0;
 
   for (int i = 0; i < segmented_by_otsu_boxed.header.infoHeader.width; i++) {
-      int count = 0;
-      for (int j = 0; j < segmented_by_otsu_boxed.header.infoHeader.height; j++) {
-          if (segmented_by_otsu_boxed.image.data.data[j * segmented_by_otsu_boxed.header.infoHeader.width + i].gray() > 1) {
-              count++;
-          }
+    int count = 0;
+    for (int j = 0; j < segmented_by_otsu_boxed.header.infoHeader.height; j++) {
+      if (segmented_by_otsu_boxed.image.data
+              .data[j * segmented_by_otsu_boxed.header.infoHeader.width + i]
+              .gray() > 1) {
+        count++;
       }
+    }
 
-      if (count > tolerance) {
-          if (!is_peak) {
-              split_at.push_back(i);
-          }
-          is_peak = true;
-          tolerance_counter = 0;
-      } else {
-          if (is_peak) {
-              tolerance_counter++;
-              if (tolerance_counter > tolerance_keep) {
-                  split_at.push_back(i);
-                  is_peak = false;
-              }
-          }
+    if (count > tolerance) {
+      if (!is_peak) {
+        split_at.push_back(i);
       }
+      is_peak = true;
+      tolerance_counter = 0;
+    } else {
+      if (is_peak) {
+        tolerance_counter++;
+        if (tolerance_counter > tolerance_keep) {
+          split_at.push_back(i);
+          is_peak = false;
+        }
+      }
+    }
   }
 
-  for(int i = 0; i < split_at.size() - 1; i++) {
-    Plot::draw_line(
-      segmented_by_otsu_boxed,
-      split_at[i],
-      segmented_by_otsu_boxed.header.infoHeader.height - 1,
-      split_at[i],
-      0
-    );
+  for (int i = 0; i < split_at.size() - 1; i++) {
+    Plot::draw_line(segmented_by_otsu_boxed, split_at[i],
+                    segmented_by_otsu_boxed.header.infoHeader.height - 1,
+                    split_at[i], 0);
   }
 
   std::ofstream split_at_file("output/split_at.bmp", std::ios::binary);
@@ -742,11 +742,12 @@ void task13() {
   // fast fourier transform
 
   auto fft_img = raw_img;
-  auto gray =
-      fft_img
-          .get_channel([&](BmpImage::BmpPixel pixel) { return (pixel.red + pixel.green) / 2; })
-          .interpret(fft_img.header.infoHeader.height,
-                     fft_img.header.infoHeader.width);
+  auto gray = fft_img
+                  .get_channel([&](BmpImage::BmpPixel pixel) {
+                    return (pixel.red + pixel.green) / 2;
+                  })
+                  .interpret(fft_img.header.infoHeader.height,
+                             fft_img.header.infoHeader.width);
   Frequency::pad(gray);
   std::ofstream fft_img_gray("output/fft_img_gray.bmp", std::ios::binary);
   auto gray_img = Frequency::plot(gray);

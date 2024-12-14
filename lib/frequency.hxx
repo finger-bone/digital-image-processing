@@ -127,24 +127,19 @@ RealMatrix ifft(const ComplexMatrix &matrix) {
   return res;
 }
 
-void cutoff_freq(ComplexMatrix &matrix, double cutoff, bool remove_high = false) {
+void cutoff_freq(ComplexMatrix &matrix, double cutoff,
+                 bool remove_high = false) {
   cutoff /= 2;
   int center_x = matrix[0].size() / 2;
   int center_y = matrix.size() / 2;
   for (int i = 0; i < matrix.size(); i++) {
     for (int j = 0; j < matrix[0].size(); j++) {
-      if(remove_high) {
-        if(
-          abs(i - center_y) > cutoff ||
-          abs(j - center_x) > cutoff
-        ) {
+      if (remove_high) {
+        if (abs(i - center_y) > cutoff || abs(j - center_x) > cutoff) {
           matrix[i][j] = {0, 0};
         }
       } else {
-        if(
-          abs(i - center_y) < cutoff &&
-          abs(j - center_x) < cutoff
-        ) {
+        if (abs(i - center_y) < cutoff && abs(j - center_x) < cutoff) {
           matrix[i][j] = {0, 0};
         }
       }
