@@ -142,7 +142,7 @@ std::vector<std::tuple<int, int>> bfs(const RealMatrix& matrix, int start_t, int
     return group;
 }
 
-std::vector<std::tuple<double, double>> get_lines_bfs(const RealMatrix& matrix, HoughLineParam& param, int spread = 1, double threshold = -1, double auto_ratio = 0.5) {
+std::vector<std::tuple<double, double>> get_lines_bfs(const RealMatrix& matrix, HoughLineParam& param, int spread = 1, double threshold = -1, double auto_ratio = 0.5, bool rect_mode = false, double rect_tolerant = 0.05) {
     auto& [theta_steps, rho_steps, rho_max] = param;
 
     // Automatically calculate threshold if it's not provided
@@ -163,9 +163,21 @@ std::vector<std::tuple<double, double>> get_lines_bfs(const RealMatrix& matrix, 
     // Iterate through the Hough space to find points above threshold
     for (int t_i = 0; t_i < theta_steps; ++t_i) {
         for (int r_i = 0; r_i < rho_steps; ++r_i) {
-            if (matrix[t_i][r_i] > threshold && !visited[t_i][r_i]) {
+            double this_th = threshold;
+            if (rect_mode) {
+                double theta = t_i * 2 * M_PI / theta_steps;
+                if(
+                    abs(theta) < rect_tolerant ||
+                    abs(theta - M_PI) < rect_tolerant ||
+                    abs(theta + M_PI) < rect_tolerant ||
+                    abs(theta - 2 * M_PI) < rect_tolerant
+                ) {
+                    this_th /= 2;
+                }
+            }
+            if (matrix[t_i][r_i] > this_th && !visited[t_i][r_i]) {
                 // BFS to collect points in the neighborhood
-                auto group = bfs(matrix, t_i, r_i, threshold, spread, theta_steps, rho_steps);
+                auto group = bfs(matrix, t_i, r_i, this_th, spread, theta_steps, rho_steps);
 
                 // Calculate the average theta and rho for the group
                 double sum_theta = 0;

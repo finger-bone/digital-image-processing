@@ -627,7 +627,7 @@ void task12() {
   std::ofstream hough_file("output/hough.bmp", std::ios::binary);
   BmpImage::write_bmp(hough_file, img);
 
-  auto raw_lines = Hough::get_lines_bfs(hough_transformed, hough_param, 1, -1, 0.2);
+  auto raw_lines = Hough::get_lines_bfs(hough_transformed, hough_param, 1, -1, 0.2, true);
   std::cout << raw_lines.size() << std::endl;
   Hough::draw_lines(raw_lines, segmented_by_otsu_log_filtered_image);
 
@@ -676,6 +676,11 @@ void task12() {
     auto v = (pxl.red + pxl.green) / 2;
     pxl = BmpImage::BmpPixel(v, v, v, 255);
   });
+  
+  int max_val = 0;
+  boxed_area_only.image.data.foreach_sync([&](BmpImage::BmpPixel &pxl, size_t idx) {
+    max_val = std::max(max_val, static_cast<int>(pxl.gray()));
+  });
 
   std::ofstream boxed_area_only_file("output/boxed_area_only.bmp", std::ios::binary);
   BmpImage::write_bmp(boxed_area_only_file, boxed_area_only);
@@ -686,11 +691,56 @@ void task12() {
 
   auto segmented_by_otsu_boxed = Segmentation::SegmentationByThreshold::segment_by_threshold(
     boxed_area_only,
-    th_by_otsu_boxed
+    (max_val + 2 * th_by_otsu_boxed) / 3
   );
 
   std::ofstream segmented_by_otsu_boxed_file("output/segmented_by_otsu_boxed.bmp", std::ios::binary);
   BmpImage::write_bmp(segmented_by_otsu_boxed_file, segmented_by_otsu_boxed);
+
+  int tolerance = segmented_by_otsu_boxed.header.infoHeader.height / 16;
+  int tolerance_keep = 2;
+
+  std::vector<int> split_at;
+  bool is_peak = false;
+  int tolerance_counter = 0;
+
+  for (int i = 0; i < segmented_by_otsu_boxed.header.infoHeader.width; i++) {
+      int count = 0;
+      for (int j = 0; j < segmented_by_otsu_boxed.header.infoHeader.height; j++) {
+          if (segmented_by_otsu_boxed.image.data.data[j * segmented_by_otsu_boxed.header.infoHeader.width + i].gray() > 1) {
+              count++;
+          }
+      }
+
+      if (count > tolerance) {
+          if (!is_peak) {
+              split_at.push_back(i);
+          }
+          is_peak = true;
+          tolerance_counter = 0;
+      } else {
+          if (is_peak) {
+              tolerance_counter++;
+              if (tolerance_counter > tolerance_keep) {
+                  split_at.push_back(i);
+                  is_peak = false;
+              }
+          }
+      }
+  }
+
+  for(int i = 0; i < split_at.size() - 1; i++) {
+    Plot::draw_line(
+      segmented_by_otsu_boxed,
+      split_at[i],
+      segmented_by_otsu_boxed.header.infoHeader.height - 1,
+      split_at[i],
+      0
+    );
+  }
+
+  std::ofstream split_at_file("output/split_at.bmp", std::ios::binary);
+  BmpImage::write_bmp(split_at_file, segmented_by_otsu_boxed);
 }
 
 void task13() {
