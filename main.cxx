@@ -1,13 +1,13 @@
 #include "lib/bmp_image.hxx"
 #include "lib/convolution.hxx"
 #include "lib/frequency.hxx"
+#include "lib/hough.hxx"
 #include "lib/linalg.hxx"
 #include "lib/linear_transform.hxx"
 #include "lib/numeric_array.hxx"
 #include "lib/plot.hxx"
 #include "lib/segmentation.hxx"
 #include "lib/terminal_print.hxx"
-#include "lib/hough.hxx"
 
 #include <cmath>
 #include <fstream>
@@ -518,17 +518,15 @@ void task8() {
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
   print_image(raw_img);
-  auto hough_data = raw_img.get_channel(
-      [&](BmpImage::BmpPixel pixel) { 
-        return static_cast<double>(pixel.gray()) / 256;
-      }
-    );
+  auto hough_data = raw_img.get_channel([&](BmpImage::BmpPixel pixel) {
+    return static_cast<double>(pixel.gray()) / 256;
+  });
 
   auto hough_param = Hough::HoughLineParam{};
-  auto hough_transformed = Hough::hough_linear_transform(hough_data.interpret(
-      raw_img.header.infoHeader.height,
-      raw_img.header.infoHeader.width
-  ), hough_param);
+  auto hough_transformed = Hough::hough_linear_transform(
+      hough_data.interpret(raw_img.header.infoHeader.height,
+                           raw_img.header.infoHeader.width),
+      hough_param);
   auto img = Hough::plot(hough_transformed);
   img.regenerate_header();
 
@@ -539,7 +537,7 @@ void task8() {
 
   Hough::draw_lines(lines, raw_img);
 
-  for(auto line : lines) {
+  for (auto line : lines) {
     std::cout << std::get<0>(line) << " " << std::get<1>(line) << std::endl;
   }
   std::cout << lines.size() << std::endl;
@@ -556,42 +554,33 @@ void task12() {
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
   print_image(raw_img);
-  auto scale_channel = raw_img.get_channel(
-      [&](BmpImage::BmpPixel pixel) {
-        return std::clamp<double>(static_cast<double>(
-          pixel.blue - (pixel.red + pixel.green) / 2
-        ), 0, 256);
-      }
-  );
+  auto scale_channel = raw_img.get_channel([&](BmpImage::BmpPixel pixel) {
+    return std::clamp<double>(
+        static_cast<double>(pixel.blue - (pixel.red + pixel.green) / 2), 0,
+        256);
+  });
   auto scaled_img = raw_img;
-  scaled_img.image.data.foreach([&](BmpImage::BmpPixel& pixel, size_t idx) {
-    pixel = BmpImage::BmpPixel(
-        pixel.red * scale_channel.data[idx] / 256,
-        pixel.green * scale_channel.data[idx] / 256,
-        pixel.blue * scale_channel.data[idx] / 256,
-        pixel.alpha
-    );
-    pixel = BmpImage::BmpPixel(
-      pixel.gray(),
-      pixel.gray(),
-      pixel.gray(),
-      pixel.alpha
-    );
+  scaled_img.image.data.foreach ([&](BmpImage::BmpPixel &pixel, size_t idx) {
+    pixel = BmpImage::BmpPixel(pixel.red * scale_channel.data[idx] / 256,
+                               pixel.green * scale_channel.data[idx] / 256,
+                               pixel.blue * scale_channel.data[idx] / 256,
+                               pixel.alpha);
+    pixel = BmpImage::BmpPixel(pixel.gray(), pixel.gray(), pixel.gray(),
+                               pixel.alpha);
   });
 
   std::ofstream scale_channel_file("output/scaled_img.bmp", std::ios::binary);
   BmpImage::write_bmp(scale_channel_file, scaled_img);
 
-  // LOG 
-  auto mid_filtered_image = Convolution::apply_mid_value_kernel(
-      scaled_img, 5, 1
-  );
+  // LOG
+  auto mid_filtered_image =
+      Convolution::apply_mid_value_kernel(scaled_img, 5, 1);
   auto log_filtered_image =
       Convolution::apply_kernel(mid_filtered_image, {{0, 0, -1, 0, 0},
-                                          {0, -1, -2, -1, 0},
-                                          {-1, -2, 16, -2, -1},
-                                          {0, -1, -2, -1, 0},
-                                          {0, 0, -1, 0, 0}});
+                                                     {0, -1, -2, -1, 0},
+                                                     {-1, -2, 16, -2, -1},
+                                                     {0, -1, -2, -1, 0},
+                                                     {0, 0, -1, 0, 0}});
 
   std::ofstream log_filtered_file("output/log_filtered.bmp", std::ios::binary);
   BmpImage::write_bmp(log_filtered_file, log_filtered_image);
@@ -603,24 +592,23 @@ void task12() {
       Segmentation::SegmentationByThreshold::segment_by_threshold(
           log_filtered_image, th_by_otsu_log_filtered_image);
 
-  std::ofstream segmented_by_otsu_log_filtered_image_file("output/segmented_by_otsu_log_filtered_image.bmp", std::ios::binary);
-  BmpImage::write_bmp(segmented_by_otsu_log_filtered_image_file, segmented_by_otsu_log_filtered_image);
+  std::ofstream segmented_by_otsu_log_filtered_image_file(
+      "output/segmented_by_otsu_log_filtered_image.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_by_otsu_log_filtered_image_file,
+                      segmented_by_otsu_log_filtered_image);
 
   // Hough
 
   auto hough_data = segmented_by_otsu_log_filtered_image.get_channel(
-      [](BmpImage::BmpPixel pixel) { 
-        return pixel.gray();
-      }
-    );
+      [](BmpImage::BmpPixel pixel) { return pixel.gray(); });
 
   auto hough_param = Hough::HoughLineParam{
-    .theta_steps = 360,
+      .theta_steps = 360,
   };
-  auto hough_transformed = Hough::hough_linear_transform(hough_data.interpret(
-      scaled_img.header.infoHeader.height,
-      scaled_img.header.infoHeader.width
-  ), hough_param, true);
+  auto hough_transformed = Hough::hough_linear_transform(
+      hough_data.interpret(scaled_img.header.infoHeader.height,
+                           scaled_img.header.infoHeader.width),
+      hough_param, true);
   auto img = Hough::plot(hough_transformed);
   img.regenerate_header();
 
@@ -697,8 +685,8 @@ void task12() {
   std::ofstream segmented_by_otsu_boxed_file("output/segmented_by_otsu_boxed.bmp", std::ios::binary);
   BmpImage::write_bmp(segmented_by_otsu_boxed_file, segmented_by_otsu_boxed);
 
-  int tolerance = segmented_by_otsu_boxed.header.infoHeader.height / 16;
-  int tolerance_keep = 2;
+  int tolerance = segmented_by_otsu_boxed.header.infoHeader.height / 32;
+  int tolerance_keep = 2; // 允许在峰内有的额外不满足条件的像素数
 
   std::vector<int> split_at;
   bool is_peak = false;
