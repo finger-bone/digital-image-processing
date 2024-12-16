@@ -546,6 +546,56 @@ void task8() {
   BmpImage::write_bmp(lines_file, raw_img);
 }
 
+void task9() {
+  std::cout << "Input the path of the image: " << std::endl;
+  std::string path;
+  std::cin >> path;
+  std::ifstream in_file(path, std::ios::binary);
+  auto raw_img = BmpImage::read_bmp(in_file);
+  std::cout << "Input Image:" << std::endl;
+  print_image(raw_img);
+
+  raw_img = Segmentation::SegmentationByThreshold::segment_by_threshold(
+    raw_img, 64
+  );
+
+  std::ofstream segmented_img_file("output/segmented.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_img_file, raw_img);
+
+  auto split = Segmentation::SegmentationByGrowth::split_region(
+      raw_img
+  );
+  std::cout << "Number of regions: " << split.size() << std::endl;
+  std::vector<BmpImage::BmpPixel> random_colors = std::vector<BmpImage::BmpPixel>{
+    BmpImage::BmpPixel {255, 0, 0, 255},
+    BmpImage::BmpPixel {0, 255, 0, 255},
+    BmpImage::BmpPixel {0, 0, 255, 255},
+    BmpImage::BmpPixel {255, 255, 0, 255},
+    BmpImage::BmpPixel {255, 0, 255, 255},
+    BmpImage::BmpPixel {0, 255, 255, 255},
+    BmpImage::BmpPixel {64, 128, 128, 255},
+    BmpImage::BmpPixel {128, 64, 128, 255},
+    BmpImage::BmpPixel {128, 128, 64, 255},
+    BmpImage::BmpPixel {128, 64, 64, 255},
+    BmpImage::BmpPixel {64, 128, 64, 255},
+    BmpImage::BmpPixel {64, 64, 128, 255},
+    BmpImage::BmpPixel {255, 128, 0, 255},
+    BmpImage::BmpPixel {128, 255, 0, 255},
+    BmpImage::BmpPixel {128, 0, 255, 255},
+    BmpImage::BmpPixel {255, 0, 128, 255},
+    BmpImage::BmpPixel {0, 255, 128, 255},
+    BmpImage::BmpPixel {0, 128, 255, 255},
+  };
+  int c = 0;
+  for(auto group : split) {
+    c = (c + 1) % random_colors.size();
+    Plot::draw_points(raw_img, group, random_colors[c]);
+  }
+
+  std::ofstream split_file("output/split.bmp", std::ios::binary);
+  BmpImage::write_bmp(split_file, raw_img);
+}
+
 void task12() {
   std::cout << "Input the path of the image: " << std::endl;
   std::string path;
@@ -688,7 +738,7 @@ void task12() {
   BmpImage::write_bmp(segmented_by_otsu_boxed_file, segmented_by_otsu_boxed);
 
   int tolerance = segmented_by_otsu_boxed.header.infoHeader.height / 32;
-  int tolerance_keep = 2; // 允许在峰内有的额外不满足条件的像素数
+  int tolerance_keep = 2;
 
   std::vector<int> split_at;
   bool is_peak = false;
@@ -721,10 +771,21 @@ void task12() {
     }
   }
 
-  for (int i = 0; i < split_at.size() - 1; i++) {
-    Plot::draw_line(segmented_by_otsu_boxed, split_at[i],
-                    segmented_by_otsu_boxed.header.infoHeader.height - 1,
-                    split_at[i], 0);
+  // for (int i = 0; i < split_at.size() - 1; i++) {
+  //   Plot::draw_line(segmented_by_otsu_boxed, split_at[i],
+  //                   segmented_by_otsu_boxed.header.infoHeader.height - 1,
+  //                   split_at[i], 0);
+  // }
+  int j = 0;
+  bool drawing_flag = true;
+  for(int i = 0; i < segmented_by_otsu_boxed.header.infoHeader.width; i++) {
+    if(i == split_at[j]) {
+      drawing_flag = !drawing_flag;
+      ++j;
+    }
+    if(drawing_flag) {
+      Plot::draw_line(segmented_by_otsu_boxed, i, 0, i, segmented_by_otsu_boxed.header.infoHeader.height - 1);
+    }
   }
 
   std::ofstream split_at_file("output/split_at.bmp", std::ios::binary);
@@ -783,6 +844,7 @@ int main() {
   // task6();
   // task7();
   // task8();
+  // task9();
   task12();
   // task13();
   return 0;

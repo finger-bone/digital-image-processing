@@ -61,6 +61,11 @@ struct BmpPixel {
   uint8_t alpha;
 
   uint8_t gray() const { return 0.299 * red + 0.587 * green + 0.114 * blue; }
+
+  double diff(const BmpPixel &other) const {
+    return (std::abs(red - other.red) + std::abs(green - other.green) +
+           std::abs(blue - other.blue)) / 3;
+  }
 };
 
 struct ColorPalette {
@@ -78,6 +83,8 @@ struct ColorPalette {
 template <typename T> struct Image {
   ImageSize size;
   NumericArray::NumericArray<T> data;
+
+  T& operator[](int i) { return data.data[i]; }
 };
 
 struct BmpImage {
