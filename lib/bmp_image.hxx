@@ -64,7 +64,8 @@ struct BmpPixel {
 
   double diff(const BmpPixel &other) const {
     return (std::abs(red - other.red) + std::abs(green - other.green) +
-           std::abs(blue - other.blue)) / 3;
+            std::abs(blue - other.blue)) /
+           3;
   }
 };
 
@@ -84,7 +85,7 @@ template <typename T> struct Image {
   ImageSize size;
   NumericArray::NumericArray<T> data;
 
-  T& operator[](int i) { return data.data[i]; }
+  T &operator[](int i) { return data.data[i]; }
 };
 
 struct BmpImage {

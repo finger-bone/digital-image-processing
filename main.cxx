@@ -13,30 +13,30 @@
 #include <fstream>
 
 std::vector<BmpImage::BmpPixel> random_colors = std::vector<BmpImage::BmpPixel>{
-  BmpImage::BmpPixel {255, 0, 0, 255},
-  BmpImage::BmpPixel {0, 255, 0, 255},
-  BmpImage::BmpPixel {0, 0, 255, 255},
-  BmpImage::BmpPixel {255, 255, 0, 255},
-  BmpImage::BmpPixel {255, 0, 255, 255},
-  BmpImage::BmpPixel {0, 255, 255, 255},
-  BmpImage::BmpPixel {64, 128, 128, 255},
-  BmpImage::BmpPixel {128, 64, 128, 255},
-  BmpImage::BmpPixel {128, 128, 64, 255},
-  BmpImage::BmpPixel {128, 64, 64, 255},
-  BmpImage::BmpPixel {64, 128, 64, 255},
-  BmpImage::BmpPixel {64, 64, 128, 255},
-  BmpImage::BmpPixel {255, 128, 0, 255},
-  BmpImage::BmpPixel {128, 255, 0, 255},
-  BmpImage::BmpPixel {128, 0, 255, 255},
-  BmpImage::BmpPixel {255, 0, 128, 255},
-  BmpImage::BmpPixel {0, 255, 128, 255},
-  BmpImage::BmpPixel {0, 128, 255, 255},
-  BmpImage::BmpPixel {32, 64, 72, 255},
-  BmpImage::BmpPixel {64, 32, 72, 255},
-  BmpImage::BmpPixel {72, 32, 64, 255},
-  BmpImage::BmpPixel {72, 64, 32, 255},
-  BmpImage::BmpPixel {64, 72, 32, 255},
-  BmpImage::BmpPixel {32, 72, 64, 255},
+    BmpImage::BmpPixel{255, 0, 0, 255},
+    BmpImage::BmpPixel{0, 255, 0, 255},
+    BmpImage::BmpPixel{0, 0, 255, 255},
+    BmpImage::BmpPixel{255, 255, 0, 255},
+    BmpImage::BmpPixel{255, 0, 255, 255},
+    BmpImage::BmpPixel{0, 255, 255, 255},
+    BmpImage::BmpPixel{64, 128, 128, 255},
+    BmpImage::BmpPixel{128, 64, 128, 255},
+    BmpImage::BmpPixel{128, 128, 64, 255},
+    BmpImage::BmpPixel{128, 64, 64, 255},
+    BmpImage::BmpPixel{64, 128, 64, 255},
+    BmpImage::BmpPixel{64, 64, 128, 255},
+    BmpImage::BmpPixel{255, 128, 0, 255},
+    BmpImage::BmpPixel{128, 255, 0, 255},
+    BmpImage::BmpPixel{128, 0, 255, 255},
+    BmpImage::BmpPixel{255, 0, 128, 255},
+    BmpImage::BmpPixel{0, 255, 128, 255},
+    BmpImage::BmpPixel{0, 128, 255, 255},
+    BmpImage::BmpPixel{32, 64, 72, 255},
+    BmpImage::BmpPixel{64, 32, 72, 255},
+    BmpImage::BmpPixel{72, 32, 64, 255},
+    BmpImage::BmpPixel{72, 64, 32, 255},
+    BmpImage::BmpPixel{64, 72, 32, 255},
+    BmpImage::BmpPixel{32, 72, 64, 255},
 };
 
 void task1(std::string path) {
@@ -555,19 +555,16 @@ void task9(std::string path) {
   std::cout << "Input Image:" << std::endl;
   print_image(raw_img);
 
-  raw_img = Segmentation::SegmentationByThreshold::segment_by_threshold(
-    raw_img, 64
-  );
+  raw_img =
+      Segmentation::SegmentationByThreshold::segment_by_threshold(raw_img, 64);
 
   std::ofstream segmented_img_file("output/segmented.bmp", std::ios::binary);
   BmpImage::write_bmp(segmented_img_file, raw_img);
 
-  auto split = Segmentation::SegmentationByGrowth::split_region(
-      raw_img
-  );
+  auto split = Segmentation::SegmentationByGrowth::split_region(raw_img);
   std::cout << "Number of regions: " << split.size() << std::endl;
   int c = 0;
-  for(auto group : split) {
+  for (auto group : split) {
     c = (c + 1) % random_colors.size();
     Plot::draw_points(raw_img, group, random_colors[c]);
   }
@@ -576,28 +573,23 @@ void task9(std::string path) {
   BmpImage::write_bmp(split_file, raw_img);
 }
 
-
 void task10(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
   print_image(raw_img);
 
-  raw_img = Segmentation::SegmentationByThreshold::segment_by_threshold(
-    raw_img, 64
-  );
+  raw_img =
+      Segmentation::SegmentationByThreshold::segment_by_threshold(raw_img, 64);
 
   std::ofstream segmented_img_file("output/segmented.bmp", std::ios::binary);
   BmpImage::write_bmp(segmented_img_file, raw_img);
 
   auto split = Segmentation::SegmentationByGrowth::get_borders(
-      raw_img, {255, 255, 255, 255}, {0, 0, 0, 255}
-  );
-  auto canvas = Plot::generate_blank_canvas(
-      raw_img.header.infoHeader.width,
-      raw_img.header.infoHeader.height
-  );
-  for(auto group : split) {
+      raw_img, {255, 255, 255, 255}, {0, 0, 0, 255});
+  auto canvas = Plot::generate_blank_canvas(raw_img.header.infoHeader.width,
+                                            raw_img.header.infoHeader.height);
+  for (auto group : split) {
     Plot::draw_points(canvas, group, {0, 0, 0, 255});
   }
 
@@ -606,20 +598,18 @@ void task10(std::string path) {
   BmpImage::write_bmp(split_file, canvas);
 
   auto another_split = Segmentation::SegmentationByGrowth::border_trace(
-    raw_img, {255, 255, 255, 255}, {0, 0, 0, 255}
-  );
+      raw_img, {255, 255, 255, 255}, {0, 0, 0, 255});
   int c = 0;
   auto another_canvas = Plot::generate_blank_canvas(
-      raw_img.header.infoHeader.width,
-      raw_img.header.infoHeader.height
-  );
-  for(auto group : another_split) {
+      raw_img.header.infoHeader.width, raw_img.header.infoHeader.height);
+  for (auto group : another_split) {
     c = (c + 1) % random_colors.size();
     Plot::draw_points(another_canvas, group, random_colors[c]);
   }
 
   another_canvas.regenerate_header();
-  std::ofstream another_split_file("output/another_split.bmp", std::ios::binary);
+  std::ofstream another_split_file("output/another_split.bmp",
+                                   std::ios::binary);
   BmpImage::write_bmp(another_split_file, another_canvas);
 }
 
@@ -798,13 +788,14 @@ void task12(std::string path) {
 
   int j = 0;
   bool drawing_flag = true;
-  for(int i = 0; i < segmented_by_otsu_boxed.header.infoHeader.width; i++) {
-    if(i == split_at[j]) {
+  for (int i = 0; i < segmented_by_otsu_boxed.header.infoHeader.width; i++) {
+    if (i == split_at[j]) {
       drawing_flag = !drawing_flag;
       ++j;
     }
-    if(drawing_flag) {
-      Plot::draw_line(segmented_by_otsu_boxed, i, 0, i, segmented_by_otsu_boxed.header.infoHeader.height - 1);
+    if (drawing_flag) {
+      Plot::draw_line(segmented_by_otsu_boxed, i, 0, i,
+                      segmented_by_otsu_boxed.header.infoHeader.height - 1);
     }
   }
 
@@ -920,7 +911,7 @@ void task() {
     return;
   }
 
-  if(is_batch) {
+  if (is_batch) {
     std::cout << "输入文件夹路径:" << std::endl;
     std::string path;
     std::cin >> path;
@@ -930,28 +921,32 @@ void task() {
         files.push_back(entry.path().string());
       }
     }
-    auto batch_task = [&](std::string path, std::function<void(std::string)> task) {
-    task(path);
+    auto batch_task = [&](std::string path,
+                          std::function<void(std::string)> task) {
+      task(path);
 
-    // Extract file name without extension from the path
-    std::string file_name_without_ext = std::filesystem::path(path).filename().string();
-    file_name_without_ext.erase(file_name_without_ext.find(".bmp"));
+      // Extract file name without extension from the path
+      std::string file_name_without_ext =
+          std::filesystem::path(path).filename().string();
+      file_name_without_ext.erase(file_name_without_ext.find(".bmp"));
 
-    // Create the new directory in output/ (if it doesn't exist)
-    std::string new_dir = "output/" + file_name_without_ext;
-    if (!std::filesystem::exists(new_dir)) {
+      // Create the new directory in output/ (if it doesn't exist)
+      std::string new_dir = "output/" + file_name_without_ext;
+      if (!std::filesystem::exists(new_dir)) {
         std::filesystem::create_directory(new_dir);
-    }
+      }
 
-    // Copy all .bmp files from output/ to the new directory
-    for (const auto& entry : std::filesystem::directory_iterator("output/")) {
-        if (entry.path().filename().string().find(".bmp") != std::string::npos) {
-            std::string new_path = new_dir + "/" + entry.path().filename().string();
-            std::filesystem::copy(entry.path(), new_path);
-            std::filesystem::remove(entry.path());
+      // Copy all .bmp files from output/ to the new directory
+      for (const auto &entry : std::filesystem::directory_iterator("output/")) {
+        if (entry.path().filename().string().find(".bmp") !=
+            std::string::npos) {
+          std::string new_path =
+              new_dir + "/" + entry.path().filename().string();
+          std::filesystem::copy(entry.path(), new_path);
+          std::filesystem::remove(entry.path());
         }
-    }
-};
+      }
+    };
     std::function<void(std::string)> task;
     switch (choice) {
     case 1:
@@ -990,7 +985,7 @@ void task() {
     default:
       break;
     }
-    for(auto file : files) {
+    for (auto file : files) {
       batch_task(file, task);
     }
   }
