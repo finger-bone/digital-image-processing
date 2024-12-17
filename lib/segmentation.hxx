@@ -134,15 +134,8 @@ namespace Segmentation
       std::set<Point> region = seeds;
 
       bool last_round_any_points_grown = true;
-
-      // 定义方向向量 (4 方向和 8 方向)
       const std::vector<Point> directions = {
-          {0, -1}, {0, 1}, {-1, 0}, {1, 0}, // 四个方向
-          {-1, -1},
-          {-1, 1},
-          {1, -1},
-          {1, 1} // 斜方向
-      };
+          {0, -1}, {0, 1}, {-1, 0}, {1, 0}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
       int max_iterations = 1280;
       int cnt = 0;
       while (last_round_any_points_grown)
@@ -190,13 +183,151 @@ namespace Segmentation
       return region;
     }
 
+    std::vector<std::set<Point>> border_trace(
+        BmpImage::BmpImage &img_src,
+        BmpImage::BmpPixel bg_color = {0, 0, 0, 255},
+        BmpImage::BmpPixel fg_color = {255, 255, 255, 255},
+        double color_tolerance = 8.0)
+    {
+      int width = img_src.image.size.width;
+      int height = img_src.image.size.height;
+
+      // Directions for the 8 neighbors (dx, dy)
+      std::vector<Point> directions = {
+          {-1, -1}, {-1, 0}, {-1, 1}, {0, -1}, {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+      std::vector<Point> four_directions = {
+          {-1, 0}, {1, 0}, {1, 0}, {-1, 0}};
+
+      // Record which pixels are boundary pixels
+      std::vector<std::vector<char>> is_border(
+          height, std::vector<char>(width, false));
+
+      // Identify the boundary pixels by comparing each pixel with its neighbors
+      for (int i = 0; i < height; i++)
+      {
+        for (int j = 0; j < width; j++)
+        {
+          // Skip pixels that are part of the background
+          if (img_src.image.data.data[i * width + j].diff(bg_color) < color_tolerance)
+          {
+            continue;
+          }
+
+          // Check the neighbors
+          bool is_border_pixel = false;
+          for (const auto &[dx, dy] : directions)
+          {
+            int nx = j + dx;
+            int ny = i + dy;
+
+            // Ensure the neighbor is within bounds
+            if (nx >= 0 && nx < width && ny >= 0 && ny < height)
+            {
+              // Check if the neighbor is background color
+              if (img_src.image.data.data[ny * width + nx].diff(bg_color) < color_tolerance)
+              {
+                is_border_pixel = true;
+                break;
+              }
+            }
+          }
+
+          // If a border pixel is found, mark the pixel
+          if (is_border_pixel)
+          {
+            is_border[i][j] = true;
+          }
+        }
+      }
+
+      // Store the boundaries
+      std::vector<std::set<Point>> borders;
+      // Track whether a pixel has been visited
+      std::vector<std::vector<char>> visited(
+          height, std::vector<char>(width, false));
+
+      // Helper function to find the next unvisited boundary pixel
+      auto find_next_border = [&]()
+      {
+        int x = -1, y = -1;
+        // Scan the entire image to find an unvisited boundary pixel
+        for (int i = 0; i < height; i++)
+        {
+          for (int j = 0; j < width; j++)
+          {
+            if (!visited[i][j] && is_border[i][j])
+            {
+              x = j;
+              y = i;
+              break;
+            }
+          }
+          if (x != -1 && y != -1)
+          {
+            break;
+          }
+        }
+
+        if (x == -1 || y == -1)
+        {
+          return false; // No unvisited boundary pixel found
+        }
+
+        std::set<Point> border;
+        border.insert({x, y});
+        visited[y][x] = true; // Mark the starting point as visited
+
+        // Use DFS to trace the boundary
+        while (true)
+        {
+          bool found = false;
+          // Check 8 neighboring directions
+          for (const auto [dx, dy] : directions)
+          {
+            int nx = x + dx;
+            int ny = y + dy;
+
+            if (nx < 0 || nx >= width || ny < 0 || ny >= height)
+            {
+              continue;
+            }
+            if (is_border[ny][nx] && !visited[ny][nx])
+            {
+              // If an unvisited boundary neighbor is found, move to it
+              x = nx;
+              y = ny;
+              border.insert({x, y});
+              visited[y][x] = true;
+              found = true;
+              break;
+            }
+          }
+
+          if (!found)
+          {
+            break; // If no neighbor is found, exit the loop
+          }
+        }
+        if(border.size() > 2) {
+          borders.push_back(border);
+        }
+        // Add the completed border to the list of borders
+        return true;
+      };
+
+      // Find all boundaries in the image
+      while (find_next_border())
+      {
+      }
+
+      return borders;
+    }
     std::vector<std::set<Point>> split_region(
         BmpImage::BmpImage &img_src,
         BmpImage::BmpPixel bg_color = {0, 0, 0, 255},
         BmpImage::BmpPixel fg_color = {255, 255, 255, 255},
         double color_tolerance = 8.0)
     {
-      using Point = std::tuple<int, int>;
 
       int width = img_src.image.size.width;
       int height = img_src.image.size.height;
@@ -209,8 +340,7 @@ namespace Segmentation
           {0, -1},
           {-1, -1},
           {-1, 0},
-          {-1, 1}   
-      };
+          {-1, 1}};
       auto find = [&](int label) -> int
       {
         while (parent[label] != label)
@@ -313,7 +443,50 @@ namespace Segmentation
 
       return result;
     }
-  } // namespace SegmentationByGrowth
+
+    std::vector<std::set<Point>> get_borders(
+        BmpImage::BmpImage &img_src,
+        BmpImage::BmpPixel bg_color = {0, 0, 0, 255},
+        BmpImage::BmpPixel fg_color = {255, 255, 255, 255},
+        double color_tolerance = 8.0)
+    {
+      std::vector<std::set<Point>> regions = split_region(img_src, bg_color, fg_color, color_tolerance);
+      const std::vector<Point> directions = {
+          {0, -1}, {0, 1}, {-1, 0}, {1, 0}};
+
+      std::vector<std::set<Point>> borders;
+      for (const auto &region : regions)
+      {
+        std::set<Point> border_points;
+
+        for (const auto &[x, y] : region)
+        {
+          bool is_border = false;
+          for (const auto &[dx, dy] : directions)
+          {
+            int nx = x + dx;
+            int ny = y + dy;
+
+            Point neighbor = {nx, ny};
+            if (region.find(neighbor) == region.end())
+            {
+              is_border = true;
+              break;
+            }
+          }
+
+          if (is_border)
+          {
+            border_points.insert(std::make_tuple(x, y));
+          }
+        }
+
+        borders.push_back(border_points);
+      }
+
+      return borders;
+    }
+  }
 
   namespace SegmentationByQuadTree
   {

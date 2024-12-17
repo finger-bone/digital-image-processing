@@ -12,10 +12,34 @@
 #include <cmath>
 #include <fstream>
 
-void task1() {
-  std::cout << "Input the path of the image: " << std::endl;
-  std::string path;
-  std::cin >> path;
+std::vector<BmpImage::BmpPixel> random_colors = std::vector<BmpImage::BmpPixel>{
+  BmpImage::BmpPixel {255, 0, 0, 255},
+  BmpImage::BmpPixel {0, 255, 0, 255},
+  BmpImage::BmpPixel {0, 0, 255, 255},
+  BmpImage::BmpPixel {255, 255, 0, 255},
+  BmpImage::BmpPixel {255, 0, 255, 255},
+  BmpImage::BmpPixel {0, 255, 255, 255},
+  BmpImage::BmpPixel {64, 128, 128, 255},
+  BmpImage::BmpPixel {128, 64, 128, 255},
+  BmpImage::BmpPixel {128, 128, 64, 255},
+  BmpImage::BmpPixel {128, 64, 64, 255},
+  BmpImage::BmpPixel {64, 128, 64, 255},
+  BmpImage::BmpPixel {64, 64, 128, 255},
+  BmpImage::BmpPixel {255, 128, 0, 255},
+  BmpImage::BmpPixel {128, 255, 0, 255},
+  BmpImage::BmpPixel {128, 0, 255, 255},
+  BmpImage::BmpPixel {255, 0, 128, 255},
+  BmpImage::BmpPixel {0, 255, 128, 255},
+  BmpImage::BmpPixel {0, 128, 255, 255},
+  BmpImage::BmpPixel {32, 64, 72, 255},
+  BmpImage::BmpPixel {64, 32, 72, 255},
+  BmpImage::BmpPixel {72, 32, 64, 255},
+  BmpImage::BmpPixel {72, 64, 32, 255},
+  BmpImage::BmpPixel {64, 72, 32, 255},
+  BmpImage::BmpPixel {32, 72, 64, 255},
+};
+
+void task1(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
@@ -97,10 +121,7 @@ void task1() {
   BmpImage::write_bmp(b_img_file, b_img);
 }
 
-void task2() {
-  std::cout << "Input the path of the image: " << std::endl;
-  std::string path;
-  std::cin >> path;
+void task2(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
@@ -120,10 +141,7 @@ void task2() {
   BmpImage::write_bmp(balanced_hist_file, balanced_hist);
 }
 
-void task3() {
-  std::cout << "Input the path of the image: " << std::endl;
-  std::string path;
-  std::cin >> path;
+void task3(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
@@ -148,10 +166,7 @@ void task3() {
   BmpImage::write_bmp(mid_filtered_file, mid_filtered_image);
 }
 
-void task4() {
-  std::cout << "Input the path of the image: " << std::endl;
-  std::string path;
-  std::cin >> path;
+void task4(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
@@ -222,10 +237,7 @@ void task4() {
   print_image(combined);
 }
 
-void task5() {
-  std::cout << "Input the path of the image: " << std::endl;
-  std::string path;
-  std::cin >> path;
+void task5(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
@@ -284,10 +296,7 @@ void task5() {
                       segmented_by_otsu_histogram);
 }
 
-void task6() {
-  std::cout << "Input the path of the image: " << std::endl;
-  std::string path;
-  std::cin >> path;
+void task6(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   raw_img.change_to_twenty_four_bit();
@@ -415,10 +424,7 @@ void task6() {
                       quad_tree_segmented_img);
 }
 
-void task7() {
-  std::cout << "Input the path of the image: " << std::endl;
-  std::string path;
-  std::cin >> path;
+void task7(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
@@ -510,10 +516,7 @@ void task7() {
                       segmented_by_otsu_log_filtered_image);
 }
 
-void task8() {
-  std::cout << "Input the path of the image: " << std::endl;
-  std::string path;
-  std::cin >> path;
+void task8(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
@@ -546,10 +549,7 @@ void task8() {
   BmpImage::write_bmp(lines_file, raw_img);
 }
 
-void task9() {
-  std::cout << "Input the path of the image: " << std::endl;
-  std::string path;
-  std::cin >> path;
+void task9(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
@@ -566,26 +566,6 @@ void task9() {
       raw_img
   );
   std::cout << "Number of regions: " << split.size() << std::endl;
-  std::vector<BmpImage::BmpPixel> random_colors = std::vector<BmpImage::BmpPixel>{
-    BmpImage::BmpPixel {255, 0, 0, 255},
-    BmpImage::BmpPixel {0, 255, 0, 255},
-    BmpImage::BmpPixel {0, 0, 255, 255},
-    BmpImage::BmpPixel {255, 255, 0, 255},
-    BmpImage::BmpPixel {255, 0, 255, 255},
-    BmpImage::BmpPixel {0, 255, 255, 255},
-    BmpImage::BmpPixel {64, 128, 128, 255},
-    BmpImage::BmpPixel {128, 64, 128, 255},
-    BmpImage::BmpPixel {128, 128, 64, 255},
-    BmpImage::BmpPixel {128, 64, 64, 255},
-    BmpImage::BmpPixel {64, 128, 64, 255},
-    BmpImage::BmpPixel {64, 64, 128, 255},
-    BmpImage::BmpPixel {255, 128, 0, 255},
-    BmpImage::BmpPixel {128, 255, 0, 255},
-    BmpImage::BmpPixel {128, 0, 255, 255},
-    BmpImage::BmpPixel {255, 0, 128, 255},
-    BmpImage::BmpPixel {0, 255, 128, 255},
-    BmpImage::BmpPixel {0, 128, 255, 255},
-  };
   int c = 0;
   for(auto group : split) {
     c = (c + 1) % random_colors.size();
@@ -596,14 +576,59 @@ void task9() {
   BmpImage::write_bmp(split_file, raw_img);
 }
 
-void task12() {
-  std::cout << "Input the path of the image: " << std::endl;
-  std::string path;
-  std::cin >> path;
+
+void task10(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
   print_image(raw_img);
+
+  raw_img = Segmentation::SegmentationByThreshold::segment_by_threshold(
+    raw_img, 64
+  );
+
+  std::ofstream segmented_img_file("output/segmented.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_img_file, raw_img);
+
+  auto split = Segmentation::SegmentationByGrowth::get_borders(
+      raw_img, {255, 255, 255, 255}, {0, 0, 0, 255}
+  );
+  auto canvas = Plot::generate_blank_canvas(
+      raw_img.header.infoHeader.width,
+      raw_img.header.infoHeader.height
+  );
+  for(auto group : split) {
+    Plot::draw_points(canvas, group, {0, 0, 0, 255});
+  }
+
+  canvas.regenerate_header();
+  std::ofstream split_file("output/split.bmp", std::ios::binary);
+  BmpImage::write_bmp(split_file, canvas);
+
+  auto another_split = Segmentation::SegmentationByGrowth::border_trace(
+    raw_img, {255, 255, 255, 255}, {0, 0, 0, 255}
+  );
+  int c = 0;
+  auto another_canvas = Plot::generate_blank_canvas(
+      raw_img.header.infoHeader.width,
+      raw_img.header.infoHeader.height
+  );
+  for(auto group : another_split) {
+    c = (c + 1) % random_colors.size();
+    Plot::draw_points(another_canvas, group, random_colors[c]);
+  }
+
+  another_canvas.regenerate_header();
+  std::ofstream another_split_file("output/another_split.bmp", std::ios::binary);
+  BmpImage::write_bmp(another_split_file, another_canvas);
+}
+
+void task12(std::string path) {
+  std::ifstream in_file(path, std::ios::binary);
+  auto raw_img = BmpImage::read_bmp(in_file);
+  std::cout << "Input Image:" << std::endl;
+  print_image(raw_img);
+
   auto scale_channel = raw_img.get_channel([&](BmpImage::BmpPixel pixel) {
     return std::clamp<double>(
         static_cast<double>(pixel.blue - (pixel.red + pixel.green) / 2), 0,
@@ -771,11 +796,6 @@ void task12() {
     }
   }
 
-  // for (int i = 0; i < split_at.size() - 1; i++) {
-  //   Plot::draw_line(segmented_by_otsu_boxed, split_at[i],
-  //                   segmented_by_otsu_boxed.header.infoHeader.height - 1,
-  //                   split_at[i], 0);
-  // }
   int j = 0;
   bool drawing_flag = true;
   for(int i = 0; i < segmented_by_otsu_boxed.header.infoHeader.width; i++) {
@@ -792,15 +812,11 @@ void task12() {
   BmpImage::write_bmp(split_at_file, segmented_by_otsu_boxed);
 }
 
-void task13() {
-  std::cout << "Input the path of the image: " << std::endl;
-  std::string path;
-  std::cin >> path;
+void task13(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   std::cout << "Input Image:" << std::endl;
   print_image(raw_img);
-  // fast fourier transform
 
   auto fft_img = raw_img;
   auto gray = fft_img
@@ -835,6 +851,151 @@ void task13() {
   BmpImage::write_bmp(ifft_img_file, ifft_img);
 }
 
+void task() {
+  std::cout << "选择任务:" << std::endl;
+  std::cout << "1. 通道分离" << std::endl;
+  std::cout << "2. 直方图处理" << std::endl;
+  std::cout << "3. 空间域滤波" << std::endl;
+  std::cout << "4. 线性变换" << std::endl;
+  std::cout << "5. 阈值分割" << std::endl;
+  std::cout << "6. 基于区域的分割" << std::endl;
+  std::cout << "7. 边缘检测" << std::endl;
+  std::cout << "8. Hough 变换" << std::endl;
+  std::cout << "9. 区域标记" << std::endl;
+  std::cout << "10. 轮廓提取" << std::endl;
+  std::cout << "12. 车牌提取" << std::endl;
+
+  int choice;
+  std::cin >> choice;
+
+  bool is_batch = false;
+  std::cout << "是否批量处理? (y/n)" << std::endl;
+  std::string answer;
+  std::cin >> answer;
+  if (answer == "y") {
+    is_batch = true;
+  }
+
+  if (!is_batch) {
+    std::cout << "请输入文件路径:" << std::endl;
+    std::string path;
+    std::cin >> path;
+    switch (choice) {
+    case 1:
+      task1(path);
+      break;
+    case 2:
+      task2(path);
+      break;
+    case 3:
+      task3(path);
+      break;
+    case 4:
+      task4(path);
+      break;
+    case 5:
+      task5(path);
+      break;
+    case 6:
+      task6(path);
+      break;
+    case 7:
+      task7(path);
+      break;
+    case 8:
+      task8(path);
+      break;
+    case 9:
+      task9(path);
+      break;
+    case 10:
+      task10(path);
+      break;
+    case 12:
+      task12(path);
+      break;
+    default:
+      break;
+    }
+    return;
+  }
+
+  if(is_batch) {
+    std::cout << "输入文件夹路径:" << std::endl;
+    std::string path;
+    std::cin >> path;
+    std::vector<std::string> files;
+    for (const auto &entry : std::filesystem::directory_iterator(path)) {
+      if (entry.path().filename().string().find(".bmp") != std::string::npos) {
+        files.push_back(entry.path().string());
+      }
+    }
+    auto batch_task = [&](std::string path, std::function<void(std::string)> task) {
+    task(path);
+
+    // Extract file name without extension from the path
+    std::string file_name_without_ext = std::filesystem::path(path).filename().string();
+    file_name_without_ext.erase(file_name_without_ext.find(".bmp"));
+
+    // Create the new directory in output/ (if it doesn't exist)
+    std::string new_dir = "output/" + file_name_without_ext;
+    if (!std::filesystem::exists(new_dir)) {
+        std::filesystem::create_directory(new_dir);
+    }
+
+    // Copy all .bmp files from output/ to the new directory
+    for (const auto& entry : std::filesystem::directory_iterator("output/")) {
+        if (entry.path().filename().string().find(".bmp") != std::string::npos) {
+            std::string new_path = new_dir + "/" + entry.path().filename().string();
+            std::filesystem::copy(entry.path(), new_path);
+            std::filesystem::remove(entry.path());
+        }
+    }
+};
+    std::function<void(std::string)> task;
+    switch (choice) {
+    case 1:
+      task = task1;
+      break;
+    case 2:
+      task = task2;
+      break;
+    case 3:
+      task = task3;
+      break;
+    case 4:
+      task = task4;
+      break;
+    case 5:
+      task = task5;
+      break;
+    case 6:
+      task = task6;
+      break;
+    case 7:
+      task = task7;
+      break;
+    case 8:
+      task = task8;
+      break;
+    case 9:
+      task = task9;
+      break;
+    case 10:
+      task = task10;
+      break;
+    case 12:
+      task = task12;
+      break;
+    default:
+      break;
+    }
+    for(auto file : files) {
+      batch_task(file, task);
+    }
+  }
+}
+
 int main() {
   // task1();
   // task3();
@@ -845,7 +1006,9 @@ int main() {
   // task7();
   // task8();
   // task9();
-  task12();
+  // task10();
+  // task12();
   // task13();
+  task();
   return 0;
 }
