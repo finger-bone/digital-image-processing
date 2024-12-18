@@ -9,16 +9,15 @@
 #include "lib/segmentation.hxx"
 #include "lib/terminal_print.hxx"
 
-#include <cmath>
-#include <fstream>
-#include <iostream>
-#include <iomanip>
-#include <filesystem>
-#include <vector>
-#include <functional>
-#include <thread>
 #include <chrono>
-
+#include <cmath>
+#include <filesystem>
+#include <fstream>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <thread>
+#include <vector>
 
 #define RESET "\033[0m"
 #define BOLD "\033[1m"
@@ -70,8 +69,7 @@ void task1(std::string path) {
     };
   });
   gray_img.change_to_eight_bit();
-  
-  
+
   std::ofstream gray_img_file("output/gray_img.bmp", std::ios::binary);
   BmpImage::write_bmp(gray_img_file, gray_img);
   // invert the image
@@ -85,8 +83,7 @@ void task1(std::string path) {
     };
   });
   inverted_grey_img.change_to_eight_bit();
-  
-  
+
   std::ofstream inverted_img_file("output/inverted_img.bmp", std::ios::binary);
   BmpImage::write_bmp(inverted_img_file, inverted_grey_img);
 
@@ -101,8 +98,7 @@ void task1(std::string path) {
     };
   });
   r_img.change_to_eight_bit();
-  
-  
+
   std::ofstream r_img_file("output/r_img.bmp", std::ios::binary);
   BmpImage::write_bmp(r_img_file, r_img);
   auto g_img = raw_img;
@@ -115,8 +111,7 @@ void task1(std::string path) {
     };
   });
   g_img.change_to_eight_bit();
-  
-  
+
   std::ofstream g_img_file("output/g_img.bmp", std::ios::binary);
   BmpImage::write_bmp(g_img_file, g_img);
   auto b_img = raw_img;
@@ -129,8 +124,7 @@ void task1(std::string path) {
     };
   });
   b_img.change_to_eight_bit();
-  
-  
+
   std::ofstream b_img_file("output/b_img.bmp", std::ios::binary);
   BmpImage::write_bmp(b_img_file, b_img);
 }
@@ -138,19 +132,17 @@ void task1(std::string path) {
 void task2(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
-  
-  
+
   auto hist = Plot::generate_gray_scale_histogram(raw_img);
-  
+
   std::ofstream hist_file("output/hist_before.bmp", std::ios::binary);
   BmpImage::write_bmp(hist_file, hist);
   auto balanced_img = BmpImage::gray_balanced_image(raw_img);
-  
-  
+
   std::ofstream balanced_img_file("output/balanced_img.bmp", std::ios::binary);
   BmpImage::write_bmp(balanced_img_file, balanced_img);
   auto balanced_hist = Plot::generate_gray_scale_histogram(balanced_img);
-  
+
   std::ofstream balanced_hist_file("output/hist_after.bmp", std::ios::binary);
   BmpImage::write_bmp(balanced_hist_file, balanced_hist);
 }
@@ -158,8 +150,7 @@ void task2(std::string path) {
 void task3(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
-  
-  
+
   auto value = 1.0 / 25;
   auto avg_filtered_image = Convolution::apply_kernel(
       raw_img, {
@@ -169,13 +160,12 @@ void task3(std::string path) {
                    {value, value, value, value, value},
                    {value, value, value, value, value},
                });
-  
-  
+
   std::ofstream avg_filtered_file("output/avg_filtered.bmp", std::ios::binary);
   BmpImage::write_bmp(avg_filtered_file, avg_filtered_image);
   auto mid_filtered_image =
       Convolution::apply_mid_value_kernel(raw_img, 5, (5 * 5) / 2);
-  
+
   std::ofstream mid_filtered_file("output/mid_filtered.bmp", std::ios::binary);
   BmpImage::write_bmp(mid_filtered_file, mid_filtered_image);
 }
@@ -183,13 +173,11 @@ void task3(std::string path) {
 void task4(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
-  
-  
+
   raw_img.change_to_twenty_four_bit();
   auto scaled_img = LinearTransform::linear_transform(
       raw_img, Linalg::LinearTransformMatrix().scale(0.5, 0.5).take());
-  
-  
+
   std::ofstream scaled_img_file("output/scaled_img.bmp", std::ios::binary);
   BmpImage::write_bmp(scaled_img_file, scaled_img);
 
@@ -197,16 +185,12 @@ void task4(std::string path) {
       raw_img, Linalg::LinearTransformMatrix().rotate(3.14 / 4).take());
   std::ofstream rotated_img_file("output/rotated_img.bmp", std::ios::binary);
   BmpImage::write_bmp(rotated_img_file, rotated_img);
-  
-  
 
   auto translated_img = LinearTransform::linear_transform(
       raw_img, Linalg::LinearTransformMatrix().translate(100, 100).take());
   std::ofstream translated_img_file("output/translated_img.bmp",
                                     std::ios::binary);
   BmpImage::write_bmp(translated_img_file, translated_img);
-  
-  
 
   auto flipped_image = LinearTransform::linear_transform(
       raw_img, Linalg::LinearTransformMatrix()
@@ -215,8 +199,6 @@ void task4(std::string path) {
                    .take());
   std::ofstream flipped_img_file("output/flipped_img.bmp", std::ios::binary);
   BmpImage::write_bmp(flipped_img_file, flipped_image);
-  
-  
 
   auto half_height = static_cast<double>(raw_img.header.infoHeader.height) / 2;
   auto perspective_img = LinearTransform::linear_transform(
@@ -236,8 +218,6 @@ void task4(std::string path) {
   std::ofstream perspective_img_file("output/perspective_img.bmp",
                                      std::ios::binary);
   BmpImage::write_bmp(perspective_img_file, perspective_img);
-  
-  
 
   auto combined =
       LinearTransform::linear_transform(raw_img, Linalg::LinearTransformMatrix()
@@ -247,19 +227,15 @@ void task4(std::string path) {
                                                      .take());
   std::ofstream combined_img_file("output/combined_img.bmp", std::ios::binary);
   BmpImage::write_bmp(combined_img_file, combined);
-  
-  
 }
 
 void task5(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
-  
-  
+
   auto segmented_img =
       Segmentation::SegmentationByThreshold::segment_by_threshold(raw_img, 128);
-  
-  
+
   std::ofstream segmented_img_file("output/segmented.bmp", std::ios::binary);
   BmpImage::write_bmp(segmented_img_file, segmented_img);
   BmpImage::BmpImage segmented_img_histogram =
@@ -274,8 +250,7 @@ void task5(std::string path) {
   auto segmented_img_by_iteration =
       Segmentation::SegmentationByThreshold::segment_by_threshold(
           raw_img, th_by_iteration);
-  
-  
+
   std::ofstream segmented_img_by_iteration_file(
       "output/segmented_img_by_iteration.bmp", std::ios::binary);
   BmpImage::write_bmp(segmented_img_by_iteration_file,
@@ -294,8 +269,7 @@ void task5(std::string path) {
   auto segmented_img_by_otsu =
       Segmentation::SegmentationByThreshold::segment_by_threshold(raw_img,
                                                                   th_by_otsu);
-  
-  
+
   std::ofstream segmented_img_by_otsu_file("output/segmented_img_by_otsu.bmp",
                                            std::ios::binary);
   BmpImage::write_bmp(segmented_img_by_otsu_file, segmented_img_by_otsu);
@@ -314,8 +288,7 @@ void task6(std::string path) {
   raw_img.change_to_twenty_four_bit();
 
   auto seed_segmented_img = raw_img;
-  
-  
+
   auto seeds = std::set<std::tuple<int, int>>({
       {0, 0},
       {seed_segmented_img.header.infoHeader.width - 1, 0},
@@ -373,7 +346,7 @@ void task6(std::string path) {
       seed_segmented_img, seed2, validate, false);
   Plot::draw_points(seed_segmented_img, res2, {0, 128, 0, 255});
   Plot::draw_points(seed_segmented_img, seed2, {128, 255, 128, 255});
-  
+
   std::ofstream seed_segmented_img_file("output/seed_segmented_img.bmp",
                                         std::ios::binary);
   BmpImage::write_bmp(seed_segmented_img_file, seed_segmented_img);
@@ -429,7 +402,7 @@ void task6(std::string path) {
   for (auto box : leaf_boxes) {
     Plot::draw_box(quad_tree_segmented_img, box.l, box.r, box.t, box.b);
   }
-  
+
   std::ofstream quad_tree_segmented_img_before_merge_file(
       "output/quad_tree_segmented_img.bmp", std::ios::binary);
   BmpImage::write_bmp(quad_tree_segmented_img_before_merge_file,
@@ -439,13 +412,9 @@ void task6(std::string path) {
 void task7(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
-  
-  
+
   auto sobel_filtered_image =
       Convolution::apply_kernel(raw_img, {{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}});
-
-  
-  
 
   std::ofstream sobel_filtered_file("output/sobel_filtered.bmp",
                                     std::ios::binary);
@@ -461,9 +430,6 @@ void task7(std::string path) {
       Segmentation::SegmentationByThreshold::segment_by_threshold(
           otsu_sobel_filtered_image, th_by_otsu_sobel_filtered_image);
 
-  
-  
-
   std::ofstream segmented_by_otsu_sobel_filtered_file(
       "output/segmented_by_otsu_sobel_filtered.bmp", std::ios::binary);
   BmpImage::write_bmp(segmented_by_otsu_sobel_filtered_file,
@@ -473,9 +439,6 @@ void task7(std::string path) {
 
   auto prewitt_filtered_image =
       Convolution::apply_kernel(raw_img, {{1, 1, 1}, {0, 0, 0}, {-1, -1, -1}});
-
-  
-  
 
   std::ofstream prewitt_filtered_file("output/prewitt_filtered.bmp",
                                       std::ios::binary);
@@ -488,9 +451,6 @@ void task7(std::string path) {
   auto segmented_by_otsu_prewitt_filtered_image =
       Segmentation::SegmentationByThreshold::segment_by_threshold(
           prewitt_filtered_image, th_by_otsu_prewitt_filtered_image);
-
-  
-  
 
   std::ofstream segmented_by_otsu_prewitt_filtered_file(
       "output/segmented_by_otsu_prewitt_filtered.bmp", std::ios::binary);
@@ -505,9 +465,6 @@ void task7(std::string path) {
                                           {0, -1, -2, -1, 0},
                                           {0, 0, -1, 0, 0}});
 
-  
-  
-
   std::ofstream log_filtered_file("output/log_filtered.bmp", std::ios::binary);
   BmpImage::write_bmp(log_filtered_file, log_filtered_image);
 
@@ -519,9 +476,6 @@ void task7(std::string path) {
       Segmentation::SegmentationByThreshold::segment_by_threshold(
           log_filtered_image, th_by_otsu_log_filtered_image);
 
-  
-  
-
   std::ofstream segmented_by_otsu_log_filtered_file(
       "output/segmented_by_otsu_log_filtered.bmp", std::ios::binary);
   BmpImage::write_bmp(segmented_by_otsu_log_filtered_file,
@@ -531,8 +485,7 @@ void task7(std::string path) {
 void task8(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
-  
-  
+
   auto hough_data = raw_img.get_channel([&](BmpImage::BmpPixel pixel) {
     return static_cast<double>(pixel.gray()) / 256;
   });
@@ -559,8 +512,6 @@ void task8(std::string path) {
 void task9(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
-  
-  
 
   raw_img =
       Segmentation::SegmentationByThreshold::segment_by_threshold(raw_img, 64);
@@ -582,8 +533,6 @@ void task9(std::string path) {
 void task10(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
-  
-  
 
   raw_img =
       Segmentation::SegmentationByThreshold::segment_by_threshold(raw_img, 64);
@@ -622,8 +571,6 @@ void task10(std::string path) {
 void task12(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
-  
-  
 
   auto scale_channel = raw_img.get_channel([&](BmpImage::BmpPixel pixel) {
     return std::clamp<double>(
@@ -809,8 +756,6 @@ void task12(std::string path) {
 void task13(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
-  
-  
 
   auto fft_img = raw_img;
   auto gray = fft_img
@@ -846,7 +791,8 @@ void task13(std::string path) {
 }
 
 void printDivider() {
-  std::cout << CYAN << "---------------------------------------------" << RESET << std::endl;
+  std::cout << CYAN << "---------------------------------------------" << RESET
+            << std::endl;
 }
 
 void printMenu() {
@@ -876,7 +822,8 @@ int getUserChoice() {
     if (std::cin.fail() || choice < 0 || (choice > 10 && choice != 12)) {
       std::cin.clear();
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-      std::cout << RED << "无效输入，请输入有效的任务编号！" << RESET << std::endl;
+      std::cout << RED << "无效输入，请输入有效的任务编号！" << RESET
+                << std::endl;
     } else {
       return choice;
     }
@@ -914,25 +861,50 @@ void processTask(const std::string &path, int choice) {
   std::cout << "原始图像信息" << std::endl;
   raw_img.pretty_print_info();
   switch (choice) {
-  case 1: task1(path); break;
-  case 2: task2(path); break;
-  case 3: task3(path); break;
-  case 4: task4(path); break;
-  case 5: task5(path); break;
-  case 6: task6(path); break;
-  case 7: task7(path); break;
-  case 8: task8(path); break;
-  case 9: task9(path); break;
-  case 10: task10(path); break;
-  case 12: task12(path); break;
-  default: break;
+  case 1:
+    task1(path);
+    break;
+  case 2:
+    task2(path);
+    break;
+  case 3:
+    task3(path);
+    break;
+  case 4:
+    task4(path);
+    break;
+  case 5:
+    task5(path);
+    break;
+  case 6:
+    task6(path);
+    break;
+  case 7:
+    task7(path);
+    break;
+  case 8:
+    task8(path);
+    break;
+  case 9:
+    task9(path);
+    break;
+  case 10:
+    task10(path);
+    break;
+  case 12:
+    task12(path);
+    break;
+  default:
+    break;
   }
 }
 
-void processBatchTask(const std::vector<std::string> &files, std::function<void(std::string)> task) {
+void processBatchTask(const std::vector<std::string> &files,
+                      std::function<void(std::string)> task) {
   int total = files.size();
   for (int i = 0; i < total; ++i) {
-    std::cout << BLUE << "正在处理文件 " << (i + 1) << "/" << total << ": " << files[i] << RESET << std::endl;
+    std::cout << BLUE << "正在处理文件 " << (i + 1) << "/" << total << ": "
+              << files[i] << RESET << std::endl;
     std::ifstream in_file(files[i], std::ios::binary);
     auto raw_img = BmpImage::read_bmp(in_file);
     in_file.close();
@@ -959,31 +931,57 @@ void task() {
     if (is_batch) {
       std::string folder_path = getPath("请输入文件夹路径: ");
       std::vector<std::string> files;
-      for (const auto &entry : std::filesystem::directory_iterator(folder_path)) {
-        if (entry.path().filename().string().find(".bmp") != std::string::npos) {
+      for (const auto &entry :
+           std::filesystem::directory_iterator(folder_path)) {
+        if (entry.path().filename().string().find(".bmp") !=
+            std::string::npos) {
           files.push_back(entry.path().string());
         }
       }
 
       if (files.empty()) {
-        std::cout << RED << "文件夹中没有找到 .bmp 文件，请重试！" << RESET << std::endl;
+        std::cout << RED << "文件夹中没有找到 .bmp 文件，请重试！" << RESET
+                  << std::endl;
         continue;
       }
 
       std::function<void(std::string)> task;
       switch (choice) {
-      case 1: task = task1; break;
-      case 2: task = task2; break;
-      case 3: task = task3; break;
-      case 4: task = task4; break;
-      case 5: task = task5; break;
-      case 6: task = task6; break;
-      case 7: task = task7; break;
-      case 8: task = task8; break;
-      case 9: task = task9; break;
-      case 10: task = task10; break;
-      case 12: task = task12; break;
-      default: break;
+      case 1:
+        task = task1;
+        break;
+      case 2:
+        task = task2;
+        break;
+      case 3:
+        task = task3;
+        break;
+      case 4:
+        task = task4;
+        break;
+      case 5:
+        task = task5;
+        break;
+      case 6:
+        task = task6;
+        break;
+      case 7:
+        task = task7;
+        break;
+      case 8:
+        task = task8;
+        break;
+      case 9:
+        task = task9;
+        break;
+      case 10:
+        task = task10;
+        break;
+      case 12:
+        task = task12;
+        break;
+      default:
+        break;
       }
 
       processBatchTask(files, task);
