@@ -19,6 +19,7 @@
 #include <thread>
 #include <vector>
 
+
 #define RESET "\033[0m"
 #define BOLD "\033[1m"
 #define RED "\033[31m"
@@ -791,40 +792,40 @@ void task13(std::string path) {
 }
 
 void printDivider() {
-  std::cout << CYAN << "---------------------------------------------" << RESET
-            << std::endl;
+  std::cout << CYAN << "┌────────────────────────────────────────────┐" << RESET << std::endl;
 }
 
 void printMenu() {
   printDivider();
-  std::cout << BOLD << "请选择一个任务:" << RESET << std::endl;
-  std::cout << GREEN << " 1. 通道分离" << RESET << std::endl;
-  std::cout << GREEN << " 2. 直方图处理" << RESET << std::endl;
-  std::cout << GREEN << " 3. 空间域滤波" << RESET << std::endl;
-  std::cout << GREEN << " 4. 线性变换" << RESET << std::endl;
-  std::cout << GREEN << " 5. 阈值分割" << RESET << std::endl;
-  std::cout << GREEN << " 6. 基于区域的分割" << RESET << std::endl;
-  std::cout << GREEN << " 7. 边缘检测" << RESET << std::endl;
-  std::cout << GREEN << " 8. Hough 变换" << RESET << std::endl;
-  std::cout << GREEN << " 9. 区域标记" << RESET << std::endl;
-  std::cout << GREEN << "10. 轮廓提取" << RESET << std::endl;
-  std::cout << GREEN << "12. 车牌提取" << RESET << std::endl;
-  std::cout << RED << " 0. 退出程序" << RESET << std::endl;
-  printDivider();
+  std::cout << BOLD << CYAN << "│                📊 图像处理菜单             │" << RESET << std::endl;
+  std::cout << CYAN << "├────────────────────────────────────────────┤" << RESET << std::endl;
+  std::cout << GREEN << "│ 1. ➤ 通道分离                              │" << RESET << std::endl;
+  std::cout << GREEN << "│ 2. ➤ 直方图处理                            │" << RESET << std::endl;
+  std::cout << GREEN << "│ 3. ➤ 空间域滤波                            │" << RESET << std::endl;
+  std::cout << GREEN << "│ 4. ➤ 线性变换                              │" << RESET << std::endl;
+  std::cout << GREEN << "│ 5. ➤ 阈值分割                              │" << RESET << std::endl;
+  std::cout << GREEN << "│ 6. ➤ 基于区域的分割                        │" << RESET << std::endl;
+  std::cout << GREEN << "│ 7. ➤ 边缘检测                              │" << RESET << std::endl;
+  std::cout << GREEN << "│ 8. ➤ Hough 变换                            │" << RESET << std::endl;
+  std::cout << GREEN << "│ 9. ➤ 区域标记                              │" << RESET << std::endl;
+  std::cout << GREEN << "│10. ➤ 轮廓提取                              │" << RESET << std::endl;
+  std::cout << GREEN << "│12. ➤ 车牌提取                              │" << RESET << std::endl;
+  std::cout << RED << "│ 0. ➤ 退出程序                              │" << RESET << std::endl;
+  std::cout << CYAN << "└────────────────────────────────────────────┘" << RESET << std::endl;
 }
 
 int getUserChoice() {
   int choice;
   while (true) {
-    std::cout << YELLOW << "请输入任务编号 (0-12): " << RESET;
+    std::cout << YELLOW << "➤ 请输入任务编号 (0-12): " << RESET;
     std::cin >> choice;
 
     if (std::cin.fail() || choice < 0 || (choice > 10 && choice != 12)) {
       std::cin.clear();
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-      std::cout << RED << "无效输入，请输入有效的任务编号！" << RESET
-                << std::endl;
+      std::cout << RED << "✘ 无效输入，请输入有效的任务编号！" << RESET << std::endl;
     } else {
+      std::cout << GREEN << "✔ 输入有效！您选择了任务编号 " << choice << RESET << std::endl;
       return choice;
     }
   }
@@ -840,18 +841,37 @@ bool getBatchMode() {
     } else if (answer == "n" || answer == "N") {
       return false;
     } else {
-      std::cout << RED << "无效输入，请输入 'y' 或 'n'!" << RESET << std::endl;
+      std::cout << RED << "✘ 无效输入，请输入 'y' 或 'n'!" << RESET << std::endl;
     }
   }
 }
 
 std::string getPath(const std::string &prompt) {
   std::string path;
-  std::cout << YELLOW << prompt << RESET;
+  std::cout << YELLOW << "📂 " << prompt << RESET;
   std::cin >> path;
   return path;
 }
 
+void showProgressBar(int current, int total) {
+  const int barWidth = 50;
+  float progress = (float)current / total;
+  int pos = barWidth * progress;
+
+  // 清除行内容
+  std::cout << "\r\033[K";  // "\r" 将光标移动到行首, "\033[K" 清除从光标到行尾的内容
+
+  // 绘制进度条
+  std::cout << CYAN << "[";
+  for (int i = 0; i < barWidth; ++i) {
+    if (i < pos)
+      std::cout << "█";
+    else
+      std::cout << "░";
+  }
+  std::cout << "] " << int(progress * 100.0) << " % (" << current << "/" << total << ")" << RESET;
+  std::cout.flush();
+}
 void processTask(const std::string &path, int choice) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
@@ -860,42 +880,42 @@ void processTask(const std::string &path, int choice) {
   print_image(raw_img);
   std::cout << "原始图像信息" << std::endl;
   raw_img.pretty_print_info();
+
   switch (choice) {
-  case 1:
-    task1(path);
-    break;
-  case 2:
-    task2(path);
-    break;
-  case 3:
-    task3(path);
-    break;
-  case 4:
-    task4(path);
-    break;
-  case 5:
-    task5(path);
-    break;
-  case 6:
-    task6(path);
-    break;
-  case 7:
-    task7(path);
-    break;
-  case 8:
-    task8(path);
-    break;
-  case 9:
-    task9(path);
-    break;
-  case 10:
-    task10(path);
-    break;
-  case 12:
-    task12(path);
-    break;
-  default:
-    break;
+    case 1: task1(path); break;
+    case 2: task2(path); break;
+    case 3: task3(path); break;
+    case 4: task4(path); break;
+    case 5: task5(path); break;
+    case 6: task6(path); break;
+    case 7: task7(path); break;
+    case 8: task8(path); break;
+    case 9: task9(path); break;
+    case 10: task10(path); break;
+    case 12: task12(path); break;
+    default: break;
+  }
+}
+
+
+void moveProcessedFiles(const std::string& path, const std::string& output_dir) {
+  // 提取文件名并去除扩展名
+  std::string file_name_without_ext = std::filesystem::path(path).filename().string();
+  file_name_without_ext.erase(file_name_without_ext.find(".bmp"));
+
+  // 创建新的目录 (如果不存在)
+  std::string new_dir = output_dir + "/" + file_name_without_ext;
+  if (!std::filesystem::exists(new_dir)) {
+    std::filesystem::create_directory(new_dir);
+  }
+
+  // 将处理后的文件从 output/ 复制到新目录
+  for (const auto& entry : std::filesystem::directory_iterator(output_dir)) {
+    if (entry.path().filename().string().find(".bmp") != std::string::npos) {
+      std::string new_path = new_dir + "/" + entry.path().filename().string();
+      std::filesystem::copy(entry.path(), new_path);  // 复制文件到新目录
+      std::filesystem::remove(entry.path());  // 删除原文件
+    }
   }
 }
 
@@ -903,18 +923,16 @@ void processBatchTask(const std::vector<std::string> &files,
                       std::function<void(std::string)> task) {
   int total = files.size();
   for (int i = 0; i < total; ++i) {
+    std::cout << std::endl;
     std::cout << BLUE << "正在处理文件 " << (i + 1) << "/" << total << ": "
               << files[i] << RESET << std::endl;
-    std::ifstream in_file(files[i], std::ios::binary);
-    auto raw_img = BmpImage::read_bmp(in_file);
-    in_file.close();
-    std::cout << "原始图像预览" << std::endl;
-    print_image(raw_img);
-    std::cout << "原始图像信息" << std::endl;
-    raw_img.pretty_print_info();
     task(files[i]);
+    showProgressBar(i + 1, total);
+    moveProcessedFiles(files[i], "output");
+
   }
-  std::cout << GREEN << "批量处理完成！" << RESET << std::endl;
+  std::cout << std::endl;
+  std::cout << GREEN << "✔ 批量处理完成！" << RESET << std::endl;
 }
 
 void task() {
@@ -923,7 +941,7 @@ void task() {
     int choice = getUserChoice();
 
     if (choice == 0) {
-      std::cout << GREEN << "感谢使用，再见！" << RESET << std::endl;
+      std::cout << GREEN << "程序已退出！" << RESET << std::endl;
       break;
     }
 
@@ -931,57 +949,31 @@ void task() {
     if (is_batch) {
       std::string folder_path = getPath("请输入文件夹路径: ");
       std::vector<std::string> files;
-      for (const auto &entry :
-           std::filesystem::directory_iterator(folder_path)) {
-        if (entry.path().filename().string().find(".bmp") !=
-            std::string::npos) {
+      for (const auto &entry : std::filesystem::directory_iterator(folder_path)) {
+        if (entry.path().filename().string().find(".bmp") != std::string::npos) {
           files.push_back(entry.path().string());
         }
       }
 
       if (files.empty()) {
-        std::cout << RED << "文件夹中没有找到 .bmp 文件，请重试！" << RESET
-                  << std::endl;
+        std::cout << RED << "✘ 文件夹中没有找到 .bmp 文件，请重试！" << RESET << std::endl;
         continue;
       }
 
       std::function<void(std::string)> task;
       switch (choice) {
-      case 1:
-        task = task1;
-        break;
-      case 2:
-        task = task2;
-        break;
-      case 3:
-        task = task3;
-        break;
-      case 4:
-        task = task4;
-        break;
-      case 5:
-        task = task5;
-        break;
-      case 6:
-        task = task6;
-        break;
-      case 7:
-        task = task7;
-        break;
-      case 8:
-        task = task8;
-        break;
-      case 9:
-        task = task9;
-        break;
-      case 10:
-        task = task10;
-        break;
-      case 12:
-        task = task12;
-        break;
-      default:
-        break;
+        case 1: task = task1; break;
+        case 2: task = task2; break;
+        case 3: task = task3; break;
+        case 4: task = task4; break;
+        case 5: task = task5; break;
+        case 6: task = task6; break;
+        case 7: task = task7; break;
+        case 8: task = task8; break;
+        case 9: task = task9; break;
+        case 10: task = task10; break;
+        case 12: task = task12; break;
+        default: break;
       }
 
       processBatchTask(files, task);
@@ -993,18 +985,6 @@ void task() {
 }
 
 int main() {
-  // task1();
-  // task3();
-  // task3();
-  // task4();
-  // task5();
-  // task6();
-  // task7();
-  // task8();
-  // task9();
-  // task10();
-  // task12();
-  // task13();
   task();
   return 0;
 }
