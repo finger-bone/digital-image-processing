@@ -162,126 +162,125 @@ grow_region(BmpImage::BmpImage &img_src, const std::set<Point> &seeds,
   return region;
 }
 
-std::vector<std::set<Point>>
-border_trace(BmpImage::BmpImage &img_src,
-             BmpImage::BmpPixel bg_color = {0, 0, 0, 255},
-             BmpImage::BmpPixel fg_color = {255, 255, 255, 255},
-             double color_tolerance = 8.0) {
-  int width = img_src.image.size.width;
-  int height = img_src.image.size.height;
+// std::vector<std::set<Point>>
+// border_trace(BmpImage::BmpImage &img_src,
+//              BmpImage::BmpPixel bg_color = {0, 0, 0, 255},
+//              BmpImage::BmpPixel fg_color = {255, 255, 255, 255},
+//              double color_tolerance = 8.0) {
+//   int width = img_src.image.size.width;
+//   int height = img_src.image.size.height;
 
-  // Directions for the 8 neighbors (dx, dy)
-  std::vector<Point> directions = {{-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
-                                   {0, 1},   {1, -1}, {1, 0},  {1, 1}};
-  std::vector<Point> four_directions = {{-1, 0}, {1, 0}, {1, 0}, {-1, 0}};
+//   // Directions for the 8 neighbors (dx, dy) in clockwise order
+//   std::vector<Point> directions = {{-1, 0}, {-1, 1}, {0, 1}, {1, 1},
+//                                    {1, 0}, {1, -1}, {0, -1}, {-1, -1}};
 
-  // Record which pixels are boundary pixels
-  std::vector<std::vector<char>> is_border(height,
-                                           std::vector<char>(width, false));
+//   // Record which pixels are boundary pixels
+//   std::vector<std::vector<char>> is_border(height,
+//                                            std::vector<char>(width, false));
 
-  // Identify the boundary pixels by comparing each pixel with its neighbors
-  for (int i = 0; i < height; i++) {
-    for (int j = 0; j < width; j++) {
-      // Skip pixels that are part of the background
-      if (img_src.image.data.data[i * width + j].diff(bg_color) <
-          color_tolerance) {
-        continue;
-      }
+//   // Identify the boundary pixels by comparing each pixel with its neighbors
+//   for (int i = 0; i < height; i++) {
+//     for (int j = 0; j < width; j++) {
+//       // Skip pixels that are part of the background
+//       if (img_src.image.data.data[i * width + j].diff(bg_color) <
+//           color_tolerance) {
+//         continue;
+//       }
 
-      // Check the neighbors
-      bool is_border_pixel = false;
-      for (const auto &[dx, dy] : directions) {
-        int nx = j + dx;
-        int ny = i + dy;
+//       // Check the neighbors
+//       bool is_border_pixel = false;
+//       for (const auto &[dx, dy] : directions) {
+//         int nx = j + dx;
+//         int ny = i + dy;
 
-        // Ensure the neighbor is within bounds
-        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-          // Check if the neighbor is background color
-          if (img_src.image.data.data[ny * width + nx].diff(bg_color) <
-              color_tolerance) {
-            is_border_pixel = true;
-            break;
-          }
-        }
-      }
+//         // Ensure the neighbor is within bounds
+//         if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+//           // Check if the neighbor is background color
+//           if (img_src.image.data.data[ny * width + nx].diff(bg_color) <
+//               color_tolerance) {
+//             is_border_pixel = true;
+//             break;
+//           }
+//         }
+//       }
 
-      // If a border pixel is found, mark the pixel
-      if (is_border_pixel) {
-        is_border[i][j] = true;
-      }
-    }
-  }
+//       // If a border pixel is found, mark the pixel
+//       if (is_border_pixel) {
+//         is_border[i][j] = true;
+//       }
+//     }
+//   }
 
-  // Store the boundaries
-  std::vector<std::set<Point>> borders;
-  // Track whether a pixel has been visited
-  std::vector<std::vector<char>> visited(height,
-                                         std::vector<char>(width, false));
+//   // Store the boundaries
+//   std::vector<std::set<Point>> borders;
+//   // Track whether a pixel has been visited
+//   std::vector<std::vector<char>> visited(height,
+//                                          std::vector<char>(width, false));
 
-  // Helper function to find the next unvisited boundary pixel
-  auto find_next_border = [&]() {
-    int x = -1, y = -1;
-    // Scan the entire image to find an unvisited boundary pixel
-    for (int i = 0; i < height; i++) {
-      for (int j = 0; j < width; j++) {
-        if (!visited[i][j] && is_border[i][j]) {
-          x = j;
-          y = i;
-          break;
-        }
-      }
-      if (x != -1 && y != -1) {
-        break;
-      }
-    }
+//   // Helper function to find the next unvisited boundary pixel
+//   auto find_next_border = [&]() {
+//     int x = -1, y = -1;
+//     // Scan the entire image to find an unvisited boundary pixel
+//     for (int i = 0; i < height; i++) {
+//       for (int j = 0; j < width; j++) {
+//         if (!visited[i][j] && is_border[i][j]) {
+//           x = j;
+//           y = i;
+//           break;
+//         }
+//       }
+//       if (x != -1 && y != -1) {
+//         break;
+//       }
+//     }
 
-    if (x == -1 || y == -1) {
-      return false; // No unvisited boundary pixel found
-    }
+//     if (x == -1 || y == -1) {
+//       return false; // No unvisited boundary pixel found
+//     }
 
-    std::set<Point> border;
-    border.insert({x, y});
-    visited[y][x] = true; // Mark the starting point as visited
+//     std::set<Point> border;
+//     border.insert({x, y});
+//     visited[y][x] = true; // Mark the starting point as visited
 
-    // Use DFS to trace the boundary
-    while (true) {
-      bool found = false;
-      // Check 8 neighboring directions
-      for (const auto [dx, dy] : directions) {
-        int nx = x + dx;
-        int ny = y + dy;
+//     // Use DFS to trace the boundary
+//     while (true) {
+//       bool found = false;
+//       // Check 8 neighboring directions
+//       for (const auto [dx, dy] : directions) {
+//         int nx = x + dx;
+//         int ny = y + dy;
 
-        if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
-          continue;
-        }
-        if (is_border[ny][nx] && !visited[ny][nx]) {
-          // If an unvisited boundary neighbor is found, move to it
-          x = nx;
-          y = ny;
-          border.insert({x, y});
-          visited[y][x] = true;
-          found = true;
-          break;
-        }
-      }
+//         if (nx < 0 || nx >= width || ny < 0 || ny >= height) {
+//           continue;
+//         }
+//         if (is_border[ny][nx] && !visited[ny][nx]) {
+//           // If an unvisited boundary neighbor is found, move to it
+//           x = nx;
+//           y = ny;
+//           border.insert({x, y});
+//           visited[y][x] = true;
+//           found = true;
+//           break;
+//         }
+//       }
 
-      if (!found) {
-        break; // If no neighbor is found, exit the loop
-      }
-    }
-    if (border.size() > 2) {
-      borders.push_back(border);
-    }
-    // Add the completed border to the list of borders
-    return true;
-  };
+//       if (!found) {
+//         break; // If no neighbor is found, exit the loop
+//       }
+//     }
+//     if (border.size() > 2) {
+//       borders.push_back(border);
+//     }
+//     // Add the completed border to the list of borders
+//     return true;
+//   };
 
-  // Find all boundaries in the image
-  while (find_next_border()) {
-  }
+//   // Find all boundaries in the image
+//   while (find_next_border());
 
-  return borders;
-}
+//   return borders;
+// }
+
 std::vector<std::set<Point>>
 split_region(BmpImage::BmpImage &img_src,
              BmpImage::BmpPixel bg_color = {0, 0, 0, 255},

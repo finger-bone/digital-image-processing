@@ -170,6 +170,24 @@ void task3(std::string path) {
   BmpImage::write_bmp(mid_filtered_file, mid_filtered_image);
 }
 
+void task3_with_parameters(std::string path, int kernel_size) {
+  std::ifstream in_file(path, std::ios::binary);
+  auto raw_img = BmpImage::read_bmp(in_file);
+
+  auto value = 1.0 / kernel_size;
+  std::vector<std::vector<double>> kernel(kernel_size, std::vector<double>(kernel_size, value));
+
+  auto avg_filtered_image = Convolution::apply_kernel(
+      raw_img, kernel);
+
+  std::ofstream avg_filtered_file("output/avg_filtered.bmp", std::ios::binary);
+  BmpImage::write_bmp(avg_filtered_file, avg_filtered_image);
+  auto mid_filtered_image =
+      Convolution::apply_mid_value_kernel(raw_img, kernel_size, (kernel_size * kernel_size) / 2);
+
+  std::ofstream mid_filtered_file("output/mid_filtered.bmp", std::ios::binary);
+}
+
 void task4(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
@@ -229,6 +247,38 @@ void task4(std::string path) {
   BmpImage::write_bmp(combined_img_file, combined);
 }
 
+void task4_with_parameters(std::string path, double scale, double translate_x,
+                           double translate_y, double rotate) {
+  std::ifstream in_file(path, std::ios::binary);
+  auto raw_img = BmpImage::read_bmp(in_file);
+
+  raw_img.change_to_twenty_four_bit();
+  auto scaled_img = LinearTransform::linear_transform(
+      raw_img, Linalg::LinearTransformMatrix().scale(scale, scale).take());
+  std::ofstream scaled_img_file("output/scaled_img.bmp", std::ios::binary);
+  BmpImage::write_bmp(scaled_img_file, scaled_img);
+
+  auto rotated_img = LinearTransform::linear_transform(
+      raw_img, Linalg::LinearTransformMatrix().rotate(rotate).take());
+  std::ofstream rotated_img_file("output/rotated_img.bmp", std::ios::binary);
+
+  auto translated_img = LinearTransform::linear_transform(
+      raw_img, Linalg::LinearTransformMatrix()
+                   .translate(translate_x, translate_y)
+                   .take());
+  std::ofstream translated_img_file("output/translated_img.bmp",
+                                    std::ios::binary);
+  BmpImage::write_bmp(translated_img_file, translated_img);
+
+  auto flipped_image = LinearTransform::linear_transform(
+      raw_img, Linalg::LinearTransformMatrix()
+                   .translate(-raw_img.header.infoHeader.width, 0)
+                   .scale(-1, 1)
+                   .take());
+  std::ofstream flipped_img_file("output/flipped_img.bmp", std::ios::binary);
+  BmpImage::write_bmp(flipped_img_file, flipped_image);
+}
+
 void task5(std::string path) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
@@ -280,6 +330,19 @@ void task5(std::string path) {
       "output/segmented_by_otsu_histogram.bmp", std::ios::binary);
   BmpImage::write_bmp(segmented_by_otsu_histogram_file,
                       segmented_by_otsu_histogram);
+}
+
+void task5_with_parameters(std::string path, int threshold) {
+  task5(path);
+  std::ifstream in_file(path, std::ios::binary);
+  auto raw_img = BmpImage::read_bmp(in_file);
+
+  auto segmented_img =
+      Segmentation::SegmentationByThreshold::segment_by_threshold(raw_img,
+                                                                  threshold);
+
+  std::ofstream segmented_img_file("output/segmented.bmp", std::ios::binary);
+  BmpImage::write_bmp(segmented_img_file, segmented_img);
 }
 
 void task6(std::string path) {
@@ -551,21 +614,6 @@ void task10(std::string path) {
   canvas.regenerate_header();
   std::ofstream split_file("output/split.bmp", std::ios::binary);
   BmpImage::write_bmp(split_file, canvas);
-
-  auto another_split = Segmentation::SegmentationByGrowth::border_trace(
-      raw_img, {255, 255, 255, 255}, {0, 0, 0, 255});
-  int c = 0;
-  auto another_canvas = Plot::generate_blank_canvas(
-      raw_img.header.infoHeader.width, raw_img.header.infoHeader.height);
-  for (auto group : another_split) {
-    c = (c + 1) % random_colors.size();
-    Plot::draw_points(another_canvas, group, random_colors[c]);
-  }
-
-  another_canvas.regenerate_header();
-  std::ofstream another_split_file("output/another_split.bmp",
-                                   std::ios::binary);
-  BmpImage::write_bmp(another_split_file, another_canvas);
 }
 
 void task12(std::string path) {
@@ -823,6 +871,8 @@ void printMenu() {
             << RESET << std::endl;
   std::cout << GREEN << "│12. ➤ 车牌提取                              │"
             << RESET << std::endl;
+    std::cout << RED << "│13. ➤ 清空输出文件夹                        │"
+            << RESET << std::endl;
   std::cout << RED << "│ 0. ➤ 退出程序                              │" << RESET
             << std::endl;
   std::cout << CYAN << "└────────────────────────────────────────────┘" << RESET
@@ -832,10 +882,10 @@ void printMenu() {
 int getUserChoice() {
   int choice;
   while (true) {
-    std::cout << YELLOW << "➤ 请输入任务编号 (0-12): " << RESET;
+    std::cout << YELLOW << "➤ 请输入任务编号 (0-13): " << RESET;
     std::cin >> choice;
 
-    if (std::cin.fail() || choice < 0 || (choice > 10 && choice != 12)) {
+    if (std::cin.fail() || choice < 0 || (choice > 10 && choice != 12 && choice != 13)) {
       std::cin.clear();
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
       std::cout << RED << "✘ 无效输入，请输入有效的任务编号！" << RESET
@@ -876,11 +926,8 @@ void showProgressBar(int current, int total) {
   float progress = (float)current / total;
   int pos = barWidth * progress;
 
-  // 清除行内容
   std::cout
-      << "\r\033[K"; // "\r" 将光标移动到行首, "\033[K" 清除从光标到行尾的内容
-
-  // 绘制进度条
+      << "\r\033[K";
   std::cout << CYAN << "[";
   for (int i = 0; i < barWidth; ++i) {
     if (i < pos)
@@ -892,7 +939,7 @@ void showProgressBar(int current, int total) {
             << total << ")" << RESET;
   std::cout.flush();
 }
-void processTask(const std::string &path, int choice) {
+void process_task(const std::string &path, int choice) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   in_file.close();
@@ -909,13 +956,31 @@ void processTask(const std::string &path, int choice) {
     task2(path);
     break;
   case 3:
-    task3(path);
+    std::cout << "输入 kernel 大小（必须为奇数）" << std::endl;
+    int kernel_size;
+    std::cin >> kernel_size;
+    task3_with_parameters(path, kernel_size);
     break;
   case 4:
-    task4(path);
+    std::cout << "输入缩放因子" << std::endl;
+    double scale_factor;
+    std::cin >> scale_factor;
+    std::cout << "输入旋转角度(弧度)" << std::endl;
+    double rotation_angle;
+    std::cin >> rotation_angle;
+    std::cout << "输入 x 方向平移距离" << std::endl;
+    double translation_x;
+    std::cin >> translation_x;
+    std::cout << "输入 y 方向平移距离" << std::endl;
+    double translation_y;
+    std::cin >> translation_y;
+    task4_with_parameters(path, scale_factor, translation_x, translation_y, rotation_angle);
     break;
   case 5:
-    task5(path);
+    std::cout << "输入人工阈值" << std::endl;
+    int threshold;
+    std::cin >> threshold;
+    task5_with_parameters(path, threshold);
     break;
   case 6:
     task6(path);
@@ -942,23 +1007,20 @@ void processTask(const std::string &path, int choice) {
 
 void moveProcessedFiles(const std::string &path,
                         const std::string &output_dir) {
-  // 提取文件名并去除扩展名
   std::string file_name_without_ext =
       std::filesystem::path(path).filename().string();
   file_name_without_ext.erase(file_name_without_ext.find(".bmp"));
 
-  // 创建新的目录 (如果不存在)
   std::string new_dir = output_dir + "/" + file_name_without_ext;
   if (!std::filesystem::exists(new_dir)) {
     std::filesystem::create_directory(new_dir);
   }
 
-  // 将处理后的文件从 output/ 复制到新目录
   for (const auto &entry : std::filesystem::directory_iterator(output_dir)) {
     if (entry.path().filename().string().find(".bmp") != std::string::npos) {
       std::string new_path = new_dir + "/" + entry.path().filename().string();
-      std::filesystem::copy(entry.path(), new_path); // 复制文件到新目录
-      std::filesystem::remove(entry.path());         // 删除原文件
+      std::filesystem::copy(entry.path(), new_path);
+      std::filesystem::remove(entry.path());
     }
   }
 }
@@ -986,6 +1048,25 @@ void task() {
     if (choice == 0) {
       std::cout << GREEN << "程序已退出！" << RESET << std::endl;
       break;
+    }
+    if(choice == 13) {
+      std::cout << RED << "确认要清空输出文件夹 (y/n) ?" << RESET << std::endl;
+      std::string answer;
+      while (true) {
+        std::cin >> answer;
+        if (answer == "y" || answer == "Y") {
+          std::filesystem::remove_all("output");
+          std::filesystem::create_directory("output");
+          std::cout << GREEN << "✔ 输出文件夹已清空！" << RESET << std::endl;
+          break;
+        } else if (answer == "n" || answer == "N") {
+          break;
+        } else {
+          std::cout << RED << "✘ 无效输入，请输入 'y' 或 'n'!" << RESET
+                    << std::endl;
+        }
+      }
+      continue;
     }
 
     bool is_batch = getBatchMode();
@@ -1048,7 +1129,7 @@ void task() {
       processBatchTask(files, task);
     } else {
       std::string file_path = getPath("请输入文件路径: ");
-      processTask(file_path, choice);
+      process_task(file_path, choice);
     }
   }
 }
