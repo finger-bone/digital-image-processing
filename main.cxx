@@ -175,15 +175,15 @@ void task3_with_parameters(std::string path, int kernel_size) {
   auto raw_img = BmpImage::read_bmp(in_file);
 
   auto value = 1.0 / kernel_size;
-  std::vector<std::vector<double>> kernel(kernel_size, std::vector<double>(kernel_size, value));
+  std::vector<std::vector<double>> kernel(
+      kernel_size, std::vector<double>(kernel_size, value));
 
-  auto avg_filtered_image = Convolution::apply_kernel(
-      raw_img, kernel);
+  auto avg_filtered_image = Convolution::apply_kernel(raw_img, kernel);
 
   std::ofstream avg_filtered_file("output/avg_filtered.bmp", std::ios::binary);
   BmpImage::write_bmp(avg_filtered_file, avg_filtered_image);
-  auto mid_filtered_image =
-      Convolution::apply_mid_value_kernel(raw_img, kernel_size, (kernel_size * kernel_size) / 2);
+  auto mid_filtered_image = Convolution::apply_mid_value_kernel(
+      raw_img, kernel_size, (kernel_size * kernel_size) / 2);
 
   std::ofstream mid_filtered_file("output/mid_filtered.bmp", std::ios::binary);
 }
@@ -871,8 +871,8 @@ void printMenu() {
             << RESET << std::endl;
   std::cout << GREEN << "│12. ➤ 车牌提取                              │"
             << RESET << std::endl;
-    std::cout << RED << "│13. ➤ 清空输出文件夹                        │"
-            << RESET << std::endl;
+  std::cout << RED << "│13. ➤ 清空输出文件夹                        │" << RESET
+            << std::endl;
   std::cout << RED << "│ 0. ➤ 退出程序                              │" << RESET
             << std::endl;
   std::cout << CYAN << "└────────────────────────────────────────────┘" << RESET
@@ -885,7 +885,8 @@ int getUserChoice() {
     std::cout << YELLOW << "➤ 请输入任务编号 (0-13): " << RESET;
     std::cin >> choice;
 
-    if (std::cin.fail() || choice < 0 || (choice > 10 && choice != 12 && choice != 13)) {
+    if (std::cin.fail() || choice < 0 ||
+        (choice > 10 && choice != 12 && choice != 13)) {
       std::cin.clear();
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
       std::cout << RED << "✘ 无效输入，请输入有效的任务编号！" << RESET
@@ -926,8 +927,7 @@ void showProgressBar(int current, int total) {
   float progress = (float)current / total;
   int pos = barWidth * progress;
 
-  std::cout
-      << "\r\033[K";
+  std::cout << "\r\033[K";
   std::cout << CYAN << "[";
   for (int i = 0; i < barWidth; ++i) {
     if (i < pos)
@@ -974,7 +974,8 @@ void process_task(const std::string &path, int choice) {
     std::cout << "输入 y 方向平移距离" << std::endl;
     double translation_y;
     std::cin >> translation_y;
-    task4_with_parameters(path, scale_factor, translation_x, translation_y, rotation_angle);
+    task4_with_parameters(path, scale_factor, translation_x, translation_y,
+                          rotation_angle);
     break;
   case 5:
     std::cout << "输入人工阈值" << std::endl;
@@ -1049,7 +1050,7 @@ void task() {
       std::cout << GREEN << "程序已退出！" << RESET << std::endl;
       break;
     }
-    if(choice == 13) {
+    if (choice == 13) {
       std::cout << RED << "确认要清空输出文件夹 (y/n) ?" << RESET << std::endl;
       std::string answer;
       while (true) {
