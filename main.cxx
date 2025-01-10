@@ -7,7 +7,7 @@
 #include "lib/numeric_array.hxx"
 #include "lib/plot.hxx"
 #include "lib/segmentation.hxx"
-#include "lib/terminal_print.hxx"
+// #include "lib/terminal_print.hxx"
 
 #include <chrono>
 #include <cmath>
@@ -943,8 +943,8 @@ void process_task(const std::string &path, int choice) {
   std::ifstream in_file(path, std::ios::binary);
   auto raw_img = BmpImage::read_bmp(in_file);
   in_file.close();
-  std::cout << "原始图像预览" << std::endl;
-  print_image(raw_img);
+  // std::cout << "原始图像预览" << std::endl;
+  // print_image(raw_img);
   std::cout << "原始图像信息" << std::endl;
   raw_img.pretty_print_info();
 
